@@ -35,9 +35,9 @@ from grpc_health.v1 import health_pb2_grpc
 from opencensus.ext.grpc import server_interceptor
 from opencensus.common.transports.async_ import AsyncTransport
 from opencensus.trace import samplers
-from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
+#from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
 from opencensus.trace import tracer as tracer_module
-
+from influxdb import InfluxDBExporter
 # import googleclouddebugger
 import googlecloudprofiler
 
@@ -202,7 +202,7 @@ if __name__ == '__main__':
       # view_manager = stats.view_manager
       # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
       # view_manager.register_exporter(exporter)
-      exporter=ZipkinExporter(
+      exporter=InfluxDBExporter(
         service_name='emailservice',
         host_name='localhost',
         port=9411,
