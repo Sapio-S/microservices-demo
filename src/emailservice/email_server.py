@@ -31,6 +31,7 @@ from grpc_health.v1 import health_pb2_grpc
 
 # from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
 from opencensus.ext.prometheus import stats_exporter as prometheus
+from opencensus.stats import stats as stats_module
 from opencensus.ext.grpc import server_interceptor
 from opencensus.common.transports.async_ import AsyncTransport
 from opencensus.trace import samplers
@@ -179,7 +180,7 @@ if __name__ == '__main__':
       raise KeyError()
     else:
       logger.info("Profiler enabled.")
-      initStackdriverProfiling()
+      #initStackdriverProfiling()
   except KeyError:
       logger.info("Profiler disabled.")
 
@@ -195,7 +196,10 @@ if __name__ == '__main__':
         project_id=os.environ.get('GCP_PROJECT_ID'),
         transport=AsyncTransport)
         '''
-      exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="opencensus"))
+      stats = stats_module.stats
+      view_manager = stats.view_manager
+      exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
+      view_manager.register_exporter(exporter)
       tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
   except (KeyError, DefaultCredentialsError):
       logger.info("Tracing disabled.")
