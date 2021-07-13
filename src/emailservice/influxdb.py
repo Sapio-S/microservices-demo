@@ -67,6 +67,9 @@ class InfluxDBExporter(base_exporter.Exporter):
         self.ipv4 = ipv4
         self.ipv6 = ipv6
 
+        # 可以在这里一直挂着client吗？？
+        self.client = InfluxDBClient('localhost', 8086, 'username', 'password', 'emailservice') 
+
     @property
     def get_url(self):
         return '{}://{}:{}{}'.format(
@@ -83,7 +86,41 @@ class InfluxDBExporter(base_exporter.Exporter):
             SpanData tuples to emit
         """
         # 向数据库中加入数据点
-        print(span_datas)
+        zipkin_spans = []
+
+        for span in span_datas:
+            # Timestamp in zipkin spans is int of microseconds.
+            start_timestamp_mus = timestamp_to_microseconds(span.start_time)
+            end_timestamp_mus = timestamp_to_microseconds(span.end_time)
+            duration_mus = end_timestamp_mus - start_timestamp_mus
+
+            zipkin_span = {
+                'traceId': span.context.trace_id,
+                'id': str(span.span_id),
+                'name': span.name,
+                'timestamp': int(round(start_timestamp_mus)),
+                'duration': int(round(duration_mus)),
+                'localEndpoint': local_endpoint,
+                'tags': _extract_tags_from_span(span.attributes),
+                'annotations': _extract_annotations_from_span(span),
+            }
+
+            span_kind = span.span_kind
+            parent_span_id = span.parent_span_id
+
+            if span_kind is not None:
+                kind = SPAN_KIND_MAP.get(span_kind)
+                # Zipkin API for span kind only accept
+                # enum(CLIENT|SERVER|PRODUCER|CONSUMER|Absent)
+                if kind is not None:
+                    zipkin_span['kind'] = kind
+
+            if parent_span_id is not None:
+                zipkin_span['parentId'] = str(parent_span_id)
+
+            zipkin_spans.append(zipkin_span)
+
+        self.client.write_points(zipkin_spans)
         """
         try:
             zipkin_spans = self.translate_to_zipkin(span_datas)
