@@ -7,8 +7,7 @@ from opencensus.common.transports import sync
 from opencensus.common.utils import check_str_length, timestamp_to_microseconds
 from opencensus.trace import base_exporter
 
-import influxdb_client
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb import InfluxDBClient
 
 DEFAULT_ENDPOINT = '/api/v2/spans'
 DEFAULT_HOST_NAME = 'localhost'
@@ -104,6 +103,7 @@ class InfluxDBExporter(base_exporter.Exporter):
                 'tags': _extract_tags_from_span(span.attributes),
                 'annotations': _extract_annotations_from_span(span),
             }
+
 
             span_kind = span.span_kind
             parent_span_id = span.parent_span_id
