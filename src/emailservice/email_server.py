@@ -30,11 +30,13 @@ from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
 # from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
-from opencensus.ext.prometheus import stats_exporter as prometheus
-from opencensus.stats import stats as stats_module
+# from opencensus.ext.prometheus import stats_exporter as prometheus
+# from opencensus.stats import stats as stats_module
 from opencensus.ext.grpc import server_interceptor
 from opencensus.common.transports.async_ import AsyncTransport
 from opencensus.trace import samplers
+from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
+from opencensus.trace import tracer as tracer_module
 
 # import googleclouddebugger
 import googlecloudprofiler
@@ -196,10 +198,15 @@ if __name__ == '__main__':
         project_id=os.environ.get('GCP_PROJECT_ID'),
         transport=AsyncTransport)
         '''
-      stats = stats_module.stats
-      view_manager = stats.view_manager
-      exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
-      view_manager.register_exporter(exporter)
+      # stats = stats_module.stats
+      # view_manager = stats.view_manager
+      # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
+      # view_manager.register_exporter(exporter)
+      exporter=ZipkinExporter(
+        service_name='emailservice',
+        host_name='localhost',
+        port=9411,
+      )
       tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
   except (KeyError, DefaultCredentialsError):
       logger.info("Tracing disabled.")
