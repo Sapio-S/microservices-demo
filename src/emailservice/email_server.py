@@ -37,7 +37,7 @@ from opencensus.common.transports.async_ import AsyncTransport
 from opencensus.trace import samplers
 #from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
 from opencensus.trace import tracer as tracer_module
-from influxdb import InfluxDBExporter
+from influx_db import InfluxDBExporter
 # import googleclouddebugger
 import googlecloudprofiler
 
