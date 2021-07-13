@@ -24,11 +24,11 @@ import googleclouddebugger
 import googlecloudprofiler
 from google.auth.exceptions import DefaultCredentialsError
 import grpc
-from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
+#from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
 from opencensus.ext.grpc import server_interceptor
 from opencensus.trace import samplers
 from opencensus.common.transports.async_ import AsyncTransport
-
+from influx_db import InfluxDBExporter
 import demo_pb2
 import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
@@ -108,9 +108,16 @@ if __name__ == "__main__":
       else:
         logger.info("Tracing enabled.")
         sampler = samplers.AlwaysOnSampler()
+        '''
         exporter = stackdriver_exporter.StackdriverExporter(
           project_id=os.environ.get('GCP_PROJECT_ID'),
           transport=AsyncTransport)
+          '''
+        exporter=InfluxDBExporter(
+          service_name='emailservice',
+          host_name='localhost',
+          port=9411,
+        )
         tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
     except (KeyError, DefaultCredentialsError):
         logger.info("Tracing disabled.")
