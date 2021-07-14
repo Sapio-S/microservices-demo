@@ -24,22 +24,29 @@ import hipstershop.Demo.AdRequest;
 import hipstershop.Demo.AdResponse;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.grpc.Metadata;
+import io.grpc.Metadata.Key;
+import io.grpc.ServerCall;
+import io.grpc.ServerCall.Listener;
+import io.grpc.ServerCallHandler;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.services.*;
 import io.grpc.stub.StreamObserver;
-import io.opencensus.common.Duration;
-import io.opencensus.contrib.grpc.metrics.RpcViews;
-import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
-import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
-import io.opencensus.exporter.trace.jaeger.JaegerExporterConfiguration;
-import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
-import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
-import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
-import io.opencensus.trace.AttributeValue;
-import io.opencensus.trace.Span;
-import io.opencensus.trace.Tracer;
-import io.opencensus.trace.Tracing;
+// import io.opencensus.common.Duration;
+// import io.opencensus.contrib.grpc.metrics.RpcViews;
+// import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
+// import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
+// import io.opencensus.exporter.trace.jaeger.JaegerExporterConfiguration;
+// import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
+// import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
+// import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
+// import io.opencensus.trace.AttributeValue;
+// import io.opencensus.trace.Span;
+// import io.opencensus.trace.Tracer;
+// import io.opencensus.trace.Tracing;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +56,21 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import java.util.Date;
+
+
+public class MyServerInterceptor implements ServerInterceptor {
+  @Override
+  public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
+      ServerCall<ReqT, RespT> call, Metadata headers,
+      ServerCallHandler<Reqt, RespT> next) {
+    long start = System.currentTimeMillis()
+    return next.startCall(new SimpleForwardingServerCall<ReqT, RespT>(call) {
+      long end = System.currentTimeMillis()
+      println(end-start);
+    }, headers);
+  }
+}
 
 public final class AdService {
 
@@ -71,6 +93,7 @@ public final class AdService {
         ServerBuilder.forPort(port)
             .addService(new AdServiceImpl())
             .addService(healthMgr.getHealthService())
+            .intercept(new MyServerInterceptor())
             .build()
             .start();
     logger.info("Ad Service started, listening on " + port);
@@ -215,116 +238,116 @@ public final class AdService {
         .build();
   }
 
-  private static void initStats() {
-    if (System.getenv("DISABLE_STATS") != null) {
-      logger.info("Stats disabled.");
-      return;
-    }
-    logger.info("Stats enabled");
+  // private static void initStats() {
+  //   if (System.getenv("DISABLE_STATS") != null) {
+  //     logger.info("Stats disabled.");
+  //     return;
+  //   }
+  //   logger.info("Stats enabled");
 
-    long sleepTime = 10; /* seconds */
-    int maxAttempts = 5;
-    boolean statsExporterRegistered = false;
-    for (int i = 0; i < maxAttempts; i++) {
-      try {
-        if (!statsExporterRegistered) {
-          StackdriverStatsExporter.createAndRegister(
-              StackdriverStatsConfiguration.builder()
-                  .setExportInterval(Duration.create(60, 0))
-                  .build());
-          statsExporterRegistered = true;
-        }
-      } catch (Exception e) {
-        if (i == (maxAttempts - 1)) {
-          logger.log(
-              Level.WARN,
-              "Failed to register Stackdriver Exporter."
-                  + " Stats data will not reported to Stackdriver. Error message: "
-                  + e.toString());
-        } else {
-          logger.info("Attempt to register Stackdriver Exporter in " + sleepTime + " seconds ");
-          try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
-          } catch (Exception se) {
-            logger.log(Level.WARN, "Exception while sleeping" + se.toString());
-          }
-        }
-      }
-    }
-    logger.info("Stats enabled - Stackdriver Exporter initialized.");
-  }
+  //   long sleepTime = 10; /* seconds */
+  //   int maxAttempts = 5;
+  //   boolean statsExporterRegistered = false;
+  //   for (int i = 0; i < maxAttempts; i++) {
+  //     try {
+  //       if (!statsExporterRegistered) {
+  //         StackdriverStatsExporter.createAndRegister(
+  //             StackdriverStatsConfiguration.builder()
+  //                 .setExportInterval(Duration.create(60, 0))
+  //                 .build());
+  //         statsExporterRegistered = true;
+  //       }
+  //     } catch (Exception e) {
+  //       if (i == (maxAttempts - 1)) {
+  //         logger.log(
+  //             Level.WARN,
+  //             "Failed to register Stackdriver Exporter."
+  //                 + " Stats data will not reported to Stackdriver. Error message: "
+  //                 + e.toString());
+  //       } else {
+  //         logger.info("Attempt to register Stackdriver Exporter in " + sleepTime + " seconds ");
+  //         try {
+  //           Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
+  //         } catch (Exception se) {
+  //           logger.log(Level.WARN, "Exception while sleeping" + se.toString());
+  //         }
+  //       }
+  //     }
+  //   }
+  //   logger.info("Stats enabled - Stackdriver Exporter initialized.");
+  // }
 
-  private static void initTracing() {
-    if (System.getenv("DISABLE_TRACING") != null) {
-      logger.info("Tracing disabled.");
-      return;
-    }
-    logger.info("Tracing enabled");
+  // private static void initTracing() {
+  //   if (System.getenv("DISABLE_TRACING") != null) {
+  //     logger.info("Tracing disabled.");
+  //     return;
+  //   }
+  //   logger.info("Tracing enabled");
 
-    long sleepTime = 10; /* seconds */
-    int maxAttempts = 5;
-    boolean traceExporterRegistered = false;
+  //   long sleepTime = 10; /* seconds */
+  //   int maxAttempts = 5;
+  //   boolean traceExporterRegistered = false;
 
-    for (int i = 0; i < maxAttempts; i++) {
-      try {
-        if (!traceExporterRegistered) {
-          StackdriverTraceExporter.createAndRegister(
-              StackdriverTraceConfiguration.builder().build());
-          traceExporterRegistered = true;
-        }
-      } catch (Exception e) {
-        if (i == (maxAttempts - 1)) {
-          logger.log(
-              Level.WARN,
-              "Failed to register Stackdriver Exporter."
-                  + " Tracing data will not reported to Stackdriver. Error message: "
-                  + e.toString());
-        } else {
-          logger.info("Attempt to register Stackdriver Exporter in " + sleepTime + " seconds ");
-          try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
-          } catch (Exception se) {
-            logger.log(Level.WARN, "Exception while sleeping" + se.toString());
-          }
-        }
-      }
-    }
-    logger.info("Tracing enabled - Stackdriver exporter initialized.");
-  }
-
-
+  //   for (int i = 0; i < maxAttempts; i++) {
+  //     try {
+  //       if (!traceExporterRegistered) {
+  //         StackdriverTraceExporter.createAndRegister(
+  //             StackdriverTraceConfiguration.builder().build());
+  //         traceExporterRegistered = true;
+  //       }
+  //     } catch (Exception e) {
+  //       if (i == (maxAttempts - 1)) {
+  //         logger.log(
+  //             Level.WARN,
+  //             "Failed to register Stackdriver Exporter."
+  //                 + " Tracing data will not reported to Stackdriver. Error message: "
+  //                 + e.toString());
+  //       } else {
+  //         logger.info("Attempt to register Stackdriver Exporter in " + sleepTime + " seconds ");
+  //         try {
+  //           Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
+  //         } catch (Exception se) {
+  //           logger.log(Level.WARN, "Exception while sleeping" + se.toString());
+  //         }
+  //       }
+  //     }
+  //   }
+  //   logger.info("Tracing enabled - Stackdriver exporter initialized.");
+  // }
 
 
-  private static void initJaeger() {
-    String jaegerAddr = System.getenv("JAEGER_SERVICE_ADDR");
-    if (jaegerAddr != null && !jaegerAddr.isEmpty()) {
-      String jaegerUrl = String.format("http://%s/api/traces", jaegerAddr);
-      // Register Jaeger Tracing.
-      JaegerTraceExporter.createAndRegister(
-          JaegerExporterConfiguration.builder()
-              .setThriftEndpoint(jaegerUrl)
-              .setServiceName("adservice")
-              .build());
-      logger.info("Jaeger initialization complete.");
-    } else {
-      logger.info("Jaeger initialization disabled.");
-    }
-  }
+
+
+  // private static void initJaeger() {
+  //   String jaegerAddr = System.getenv("JAEGER_SERVICE_ADDR");
+  //   if (jaegerAddr != null && !jaegerAddr.isEmpty()) {
+  //     String jaegerUrl = String.format("http://%s/api/traces", jaegerAddr);
+  //     // Register Jaeger Tracing.
+  //     JaegerTraceExporter.createAndRegister(
+  //         JaegerExporterConfiguration.builder()
+  //             .setThriftEndpoint(jaegerUrl)
+  //             .setServiceName("adservice")
+  //             .build());
+  //     logger.info("Jaeger initialization complete.");
+  //   } else {
+  //     logger.info("Jaeger initialization disabled.");
+  //   }
+  // }
 
   /** Main launches the server from the command line. */
   public static void main(String[] args) throws IOException, InterruptedException {
     // Registers all RPC views.
-    RpcViews.registerAllGrpcViews();
+    // RpcViews.registerAllGrpcViews();
 
-    new Thread(
-            () -> {
-              initStats();
-              initTracing();
-            })
-        .start();
+    // new Thread(
+    //         () -> {
+    //           initStats();
+    //           initTracing();
+    //         })
+    //     .start();
 
     // Register Jaeger
-    initJaeger();
+    // initJaeger();
 
     // Start the RPC server. You shouldn't see any output from gRPC before this.
     logger.info("AdService starting.");

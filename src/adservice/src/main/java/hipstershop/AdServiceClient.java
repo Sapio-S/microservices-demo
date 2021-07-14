@@ -22,18 +22,18 @@ import hipstershop.Demo.AdResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.opencensus.common.Duration;
-import io.opencensus.common.Scope;
-import io.opencensus.contrib.grpc.metrics.RpcViews;
-import io.opencensus.contrib.grpc.util.StatusConverter;
-import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
-import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
-import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
-import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
-import io.opencensus.trace.Span;
-import io.opencensus.trace.Tracer;
-import io.opencensus.trace.Tracing;
-import io.opencensus.trace.samplers.Samplers;
+// import io.opencensus.common.Duration;
+// import io.opencensus.common.Scope;
+// import io.opencensus.contrib.grpc.metrics.RpcViews;
+// import io.opencensus.contrib.grpc.util.StatusConverter;
+// import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
+// import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
+// import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
+// import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
+// import io.opencensus.trace.Span;
+// import io.opencensus.trace.Tracer;
+// import io.opencensus.trace.Tracing;
+// import io.opencensus.trace.samplers.Samplers;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.apache.logging.log4j.Level;
@@ -129,7 +129,7 @@ public class AdServiceClient {
     final int serverPort = getPortOrDefaultFromArgs(args);
 
     // Registers all RPC views.
-    RpcViews.registerAllGrpcViews();
+    // RpcViews.registerAllGrpcViews();
 
     // Registers Stackdriver exporters.
     long sleepTime = 10; /* seconds */
