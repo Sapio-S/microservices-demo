@@ -38,10 +38,12 @@ const PORT = 7000;
  /** @override */
  SimpleUnaryInterceptor.prototype.intercept = function(request, invoker) {
    console.log(">>>start");
+   let start = Date.now();
    // After the RPC returns successfully, update the response.
    return invoker(request).then((response) => {
-
+     let end = Date.now();
      console.log(">>>end");
+     console.log(end-start); // 是时间戳的差
      return response;
    });
  };
