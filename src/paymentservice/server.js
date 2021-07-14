@@ -37,7 +37,7 @@ class HipsterShopServer {
     };
 
     // this.server = new grpc.Server();
-    this.server = new grpc.Server(null, preHook, postHook);
+    this.server = new grpc.Server(null, this.preHook, this.postHook);
  
     this.loadAllProtos(protoRoot);
   }
