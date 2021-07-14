@@ -39,7 +39,7 @@ from opencensus.trace import samplers
 from opencensus.trace import tracer as tracer_module
 from influx_db import InfluxDBExporter
 # import googleclouddebugger
-import googlecloudprofiler
+# import googlecloudprofiler
 
 from logger import getJSONLogger
 logger = getJSONLogger('emailservice-server')
@@ -147,69 +147,69 @@ def start(dummy_mode):
   except KeyboardInterrupt:
     server.stop(0)
 
-def initStackdriverProfiling():
-  project_id = None
-  try:
-    project_id = os.environ["GCP_PROJECT_ID"]
-  except KeyError:
-    # Environment variable not set
-    pass
+# def initStackdriverProfiling():
+#   project_id = None
+#   try:
+#     project_id = os.environ["GCP_PROJECT_ID"]
+#   except KeyError:
+#     # Environment variable not set
+#     pass
 
-  for retry in range(1,4):
-    try:
-      if project_id:
-        googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0, project_id=project_id)
-      else:
-        googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0)
-      logger.info("Successfully started Stackdriver Profiler.")
-      return
-    except (BaseException) as exc:
-      logger.info("Unable to start Stackdriver Profiler Python agent. " + str(exc))
-      if (retry < 4):
-        logger.info("Sleeping %d to retry initializing Stackdriver Profiler"%(retry*10))
-        time.sleep (1)
-      else:
-        logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
-  return
+#   for retry in range(1,4):
+#     try:
+#       if project_id:
+#         googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0, project_id=project_id)
+#       else:
+#         googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0)
+#       logger.info("Successfully started Stackdriver Profiler.")
+#       return
+#     except (BaseException) as exc:
+#       logger.info("Unable to start Stackdriver Profiler Python agent. " + str(exc))
+#       if (retry < 4):
+#         logger.info("Sleeping %d to retry initializing Stackdriver Profiler"%(retry*10))
+#         time.sleep (1)
+#       else:
+#         logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
+#   return
 
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
 
-  # Profiler
-  try:
-    if "DISABLE_PROFILER" in os.environ:
-      raise KeyError()
-    else:
-      logger.info("Profiler enabled.")
-      #initStackdriverProfiling()
-  except KeyError:
-      logger.info("Profiler disabled.")
-
-  # Tracing
-  try:
-    if "DISABLE_TRACING" in os.environ:
-      raise KeyError()
-    else:
-      logger.info("Tracing enabled.")
-      sampler = samplers.AlwaysOnSampler()
-      '''
-      exporter = stackdriver_exporter.StackdriverExporter(
-        project_id=os.environ.get('GCP_PROJECT_ID'),
-        transport=AsyncTransport)
-        '''
-      # stats = stats_module.stats
-      # view_manager = stats.view_manager
-      # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
-      # view_manager.register_exporter(exporter)
-      exporter=InfluxDBExporter(
-        service_name='emailservice',
-        host_name='localhost',
-        port=9411,
-      )
-      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
-  except (KeyError, DefaultCredentialsError):
-      logger.info("Tracing disabled.")
-      tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
+  # # Profiler
+  # try:
+  #   if "DISABLE_PROFILER" in os.environ:
+  #     raise KeyError()
+  #   else:
+  #     logger.info("Profiler enabled.")
+  #     #initStackdriverProfiling()
+  # except KeyError:
+  #     logger.info("Profiler disabled.")
+  logger.info("Tracing enabled.")
+  sampler = samplers.AlwaysOnSampler()
+  '''
+  exporter = stackdriver_exporter.StackdriverExporter(
+    project_id=os.environ.get('GCP_PROJECT_ID'),
+    transport=AsyncTransport)
+    '''
+  # stats = stats_module.stats
+  # view_manager = stats.view_manager
+  # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
+  # view_manager.register_exporter(exporter)
+  exporter=InfluxDBExporter(
+    service_name='emailservice',
+    host_name='localhost',
+    port=9411,
+  )
+  tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+  # # Tracing
+  # try:
+  #   if "DISABLE_TRACING" in os.environ:
+  #     raise KeyError()
+  #   else:
+      
+  # except (KeyError, DefaultCredentialsError):
+  #     logger.info("Tracing disabled.")
+  #     tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
 
   start(dummy_mode = True)

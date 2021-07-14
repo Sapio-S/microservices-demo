@@ -25,9 +25,35 @@ const pino = require('pino');
 const PROTO_PATH = path.join(__dirname, './proto/demo.proto');
 const PORT = 7000;
 
+
+
+// 实现interceptor
+
+/**
+ * @constructor
+ * @implements {UnaryInterceptor}
+ */
+ const SimpleUnaryInterceptor = function() {};
+
+ /** @override */
+ SimpleUnaryInterceptor.prototype.intercept = function(request, invoker) {
+   console.log(">>>start");
+   // After the RPC returns successfully, update the response.
+   return invoker(request).then((response) => {
+
+     console.log(">>>end");
+     return response;
+   });
+ };
+
+
+
 const shopProto = grpc.load(PROTO_PATH).hipstershop;
-const client = new shopProto.CurrencyService(`localhost:${PORT}`,
-  grpc.credentials.createInsecure());
+const client = new shopProto.CurrencyService(`localhost:${PORT}`,grpc.credentials.createInsecure(), 
+  {'unaryInterceptors': [SimpleUnaryInterceptor]});   // bind on client
+// ref: https://grpc.io/blog/grpc-web-interceptor/
+
+
 
 const logger = pino({
   name: 'currencyservice-client',
