@@ -29,6 +29,9 @@ COPY package*.json ./
 
 RUN npm install --only=production
 
+# 为interceptor引入
+RUN npm install grpc-middleware
+
 FROM base
 
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \

@@ -27,32 +27,32 @@ const PORT = 7000;
 
 
 
-// 实现interceptor
+// // 实现interceptor
 
-/**
- * @constructor
- * @implements {UnaryInterceptor}
- */
- const SimpleUnaryInterceptor = function() {};
+// /**
+//  * @constructor
+//  * @implements {UnaryInterceptor}
+//  */
+//  const SimpleUnaryInterceptor = function() {};
 
- /** @override */
- SimpleUnaryInterceptor.prototype.intercept = function(request, invoker) {
-   console.log(">>>start");
-   let start = Date.now();
-   // After the RPC returns successfully, update the response.
-   return invoker(request).then((response) => {
-     let end = Date.now();
-     console.log(">>>end");
-     console.log(end-start); // 是时间戳的差
-     return response;
-   });
- };
+//  /** @override */
+//  SimpleUnaryInterceptor.prototype.intercept = function(request, invoker) {
+//    console.log(">>>start");
+//    let start = Date.now();
+//    // After the RPC returns successfully, update the response.
+//    return invoker(request).then((response) => {
+//      let end = Date.now();
+//      console.log(">>>end");
+//      console.log(end-start); // 是时间戳的差
+//      return response;
+//    });
+//  };
 
 
 
 const shopProto = grpc.load(PROTO_PATH).hipstershop;
-const client = new shopProto.CurrencyService(`localhost:${PORT}`,grpc.credentials.createInsecure(), 
-  {'unaryInterceptors': [SimpleUnaryInterceptor]});   // bind on client
+const client = new shopProto.CurrencyService(`localhost:${PORT}`,grpc.credentials.createInsecure() );
+  // {'unaryInterceptors': [SimpleUnaryInterceptor]});   // bind on client
 // ref: https://grpc.io/blog/grpc-web-interceptor/
 
 

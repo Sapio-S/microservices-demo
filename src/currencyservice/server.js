@@ -50,7 +50,9 @@
 // }
 
 const path = require('path');
-const grpc = require('grpc');
+
+const grpc = require('grpc-middleware');
+// const grpc = require('grpc');
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -160,13 +162,25 @@ function check (call, callback) {
   callback(null, { status: 'SERVING' });
 }
 
+function preHook(context, request) {
+  console.log('in prehook');
+  context.time = Date.now();
+} 
+
+function postHook(err, context, request) {
+  console.log('in postHook');
+  let end = Date.now();
+  console.log(context);
+  console.log(end - context.time); // 时间戳格式
+} 
+
 /**
  * Starts an RPC server that receives requests for the
  * CurrencyConverter service at the sample server port
  */
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
-  const server = new grpc.Server();
+  const server = new grpc.Server(null, preHook, postHook);
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
   server.bind(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure());
