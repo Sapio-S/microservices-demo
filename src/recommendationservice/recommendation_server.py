@@ -110,7 +110,7 @@ if __name__ == "__main__":
       transport=AsyncTransport)
       '''
     exporter=InfluxDBExporter(
-      service_name='emailservice',
+      service_name='recommendation_service',
       host_name='localhost',
       port=9411,
     )
