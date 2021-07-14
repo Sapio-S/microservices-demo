@@ -31,15 +31,15 @@ import (
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"cloud.google.com/go/profiler"
-	"contrib.go.opencensus.io/exporter/jaeger"
-	"contrib.go.opencensus.io/exporter/stackdriver"
+	// "cloud.google.com/go/profiler"
+	// "contrib.go.opencensus.io/exporter/jaeger"
+	// "contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/sirupsen/logrus"
 	//  "go.opencensus.io/exporter/jaeger"
-	"go.opencensus.io/plugin/ocgrpc"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/trace"
+	// "go.opencensus.io/plugin/ocgrpc"
+	// "go.opencensus.io/stats/view"
+	// "go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -75,7 +75,7 @@ func init() {
 }
 
 func main() {
-	go initTracing()
+	// go initTracing()
 	// if os.Getenv("DISABLE_TRACING") == "" {
 	// 	log.Info("Tracing enabled.")
 		

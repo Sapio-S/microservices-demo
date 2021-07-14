@@ -57,6 +57,27 @@ func init() {
 	log.Out = os.Stdout
 }
 
+// Authorization unary interceptor function to handle authorize per RPC call
+func serverInterceptor(ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (interface{}, error) {
+
+	start := time.Now()
+	// Calls the handler
+	h, err := handler(ctx, req)
+
+	end := time.Now()
+	duration := end.Sub(start).Microseconds()
+	log.Info("latency %s", duration)
+
+	return h, err
+}
+
+func withServerUnaryInterceptor() grpc.ServerOption {
+	return grpc.UnaryInterceptor(serverInterceptor)
+}
+
 func main() {
 	if os.Getenv("DISABLE_TRACING") == "" {
 		log.Info("Tracing enabled.")
@@ -84,13 +105,11 @@ func main() {
 	}
 
 	var srv *grpc.Server
-	if os.Getenv("DISABLE_STATS") == "" {
-		log.Info("Stats enabled.")
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
-	} else {
-		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
-	}
+
+	srv = grpc.NewServer(
+		withServerUnaryInterceptor(),
+	)
+
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)
