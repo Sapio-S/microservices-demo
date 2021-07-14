@@ -13,7 +13,8 @@
 // limitations under the License.
 
 const path = require('path');
-const grpc = require('grpc');
+// const grpc = require('grpc');
+const grpc = require('grpc-middleware');
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -35,9 +36,23 @@ class HipsterShopServer {
       health: this.loadProto(path.join(protoRoot, 'grpc/health/v1/health.proto'))
     };
 
-    this.server = new grpc.Server();
+    // this.server = new grpc.Server();
+    this.server = new grpc.Server(null, preHook, postHook);
+ 
     this.loadAllProtos(protoRoot);
   }
+
+  preHook(context, request) {
+    console.log('in prehook');
+    context.time = Date.now();
+  } 
+ 
+  postHook(err, context, request) {
+    console.log('in postHook');
+    let end = Date.now();
+    console.log(context);
+    console.log(end - context.time); // 时间戳格式
+  } 
 
   /**
    * Handler for PaymentService.Charge.
