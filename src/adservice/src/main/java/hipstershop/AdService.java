@@ -24,13 +24,6 @@ import hipstershop.Demo.AdRequest;
 import hipstershop.Demo.AdResponse;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.ServerInterceptor;
-import io.grpc.Metadata;
-import io.grpc.Metadata.Key;
-import io.grpc.ServerCall;
-import io.grpc.ServerCall.Listener;
-import io.grpc.ServerCallHandler;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.services.*;
@@ -56,21 +49,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.util.Date;
-
-
-public class MyServerInterceptor implements ServerInterceptor {
-  @Override
-  public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
-      ServerCall<ReqT, RespT> call, Metadata headers,
-      ServerCallHandler<Reqt, RespT> next) {
-    long start = System.currentTimeMillis();
-    return next.startCall(new SimpleForwardingServerCall<ReqT, RespT>(call) {
-      long end = System.currentTimeMillis();
-      println(end-start);
-    }, headers);
-  }
-}
 
 public final class AdService {
 
@@ -93,7 +71,6 @@ public final class AdService {
         ServerBuilder.forPort(port)
             .addService(new AdServiceImpl())
             .addService(healthMgr.getHealthService())
-            .intercept(new MyServerInterceptor())
             .build()
             .start();
     logger.info("Ad Service started, listening on " + port);
@@ -346,7 +323,7 @@ public final class AdService {
     //         })
     //     .start();
 
-    // Register Jaeger
+    // // Register Jaeger
     // initJaeger();
 
     // Start the RPC server. You shouldn't see any output from gRPC before this.
