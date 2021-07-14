@@ -28,7 +28,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
 WORKDIR /recommendationservice
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
-RUN pip install grpc_interceptor
+RUN pip install 'influxdb-client[ciso]'
 # add files into working directory
 COPY . .
 
