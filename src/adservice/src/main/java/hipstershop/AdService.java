@@ -64,9 +64,9 @@ public class MyServerInterceptor implements ServerInterceptor {
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
       ServerCall<ReqT, RespT> call, Metadata headers,
       ServerCallHandler<Reqt, RespT> next) {
-    long start = System.currentTimeMillis()
+    long start = System.currentTimeMillis();
     return next.startCall(new SimpleForwardingServerCall<ReqT, RespT>(call) {
-      long end = System.currentTimeMillis()
+      long end = System.currentTimeMillis();
       println(end-start);
     }, headers);
   }
