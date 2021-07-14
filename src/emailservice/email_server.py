@@ -32,16 +32,14 @@ from grpc_health.v1 import health_pb2_grpc
 # from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
 # from opencensus.ext.prometheus import stats_exporter as prometheus
 # from opencensus.stats import stats as stats_module
-
+from opencensus.ext.grpc import server_interceptor
+from opencensus.common.transports.async_ import AsyncTransport
+from opencensus.trace import samplers
+#from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
+from opencensus.trace import tracer as tracer_module
+from influx_db import InfluxDBExporter
 # import googleclouddebugger
 # import googlecloudprofiler
-
-# from opencensus.ext.grpc import server_interceptor
-# from opencensus.common.transports.async_ import AsyncTransport
-# from opencensus.trace import samplers
-# #from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
-# from opencensus.trace import tracer as tracer_module
-# from influx_db import InfluxDBExporter
 
 from logger import getJSONLogger
 logger = getJSONLogger('emailservice-server')
@@ -117,35 +115,6 @@ class EmailService(BaseEmailService):
 
     return demo_pb2.Empty()
 
-
-from grpc_interceptor import ServerInterceptor
-class TimeInterceptor(ServerInterceptor):
-    def intercept(
-        self,
-        method: Callable,
-        request: Any,
-        context: grpc.ServicerContext,
-        method_name: str,
-    ) -> Any:
-        """Override this method to implement a custom interceptor.
-         You should call method(request, context) to invoke the
-         next handler (either the RPC method implementation, or the
-         next interceptor in the list).
-         Args:
-             method: The next interceptor, or method implementation.
-             request: The RPC request, as a protobuf message.
-             context: The ServicerContext pass by gRPC to the service.
-             method_name: A string of the form
-                 "/protobuf.package.Service/Method"
-         Returns:
-             This should generally return the result of
-             method(request, context), which is typically the RPC
-             method response, as a protobuf message. The interceptor
-             is free to modify this in some way, however.
-         """
-        return method(request, context)
-
-
 class DummyEmailService(BaseEmailService):
   def SendOrderConfirmation(self, request, context):
     logger.info('A request to send order confirmation email to {} has been received.'.format(request.email))
@@ -157,9 +126,8 @@ class HealthCheck():
       status=health_pb2.HealthCheckResponse.SERVING)
 
 def start(dummy_mode):
-  interceptors = [TimeInterceptor()]
   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-                       interceptors=interceptors)
+                       interceptors=(tracer_interceptor,))
   service = None
   if dummy_mode:
     service = DummyEmailService()
@@ -218,7 +186,7 @@ if __name__ == '__main__':
   # except KeyError:
   #     logger.info("Profiler disabled.")
   logger.info("Tracing enabled.")
-  # sampler = samplers.AlwaysOnSampler()
+  sampler = samplers.AlwaysOnSampler()
   '''
   exporter = stackdriver_exporter.StackdriverExporter(
     project_id=os.environ.get('GCP_PROJECT_ID'),
@@ -228,12 +196,12 @@ if __name__ == '__main__':
   # view_manager = stats.view_manager
   # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
   # view_manager.register_exporter(exporter)
-  # exporter=InfluxDBExporter(
-  #   service_name='emailservice',
-  #   host_name='localhost',
-  #   port=9411,
-  # )
-  # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+  exporter=InfluxDBExporter(
+    service_name='email_service',
+    host_name='localhost',
+    port=9411,
+  )
+  tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
   # # Tracing
   # try:
   #   if "DISABLE_TRACING" in os.environ:
