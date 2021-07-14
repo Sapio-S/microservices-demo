@@ -33,8 +33,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 def getJSONLogger(name):
   logger = logging.getLogger(name)
   handler = logging.StreamHandler(sys.stdout)
-  formatter = CustomJsonFormatter('(timestamp) (severity) (name) (message)')
-  handler.setFormatter(formatter)
+  # formatter = CustomJsonFormatter('(timestamp) (severity) (name) (message)')
+  # handler.setFormatter(formatter)
   logger.addHandler(handler)
   logger.setLevel(logging.INFO)
   logger.propagate = False
