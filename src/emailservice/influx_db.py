@@ -71,10 +71,10 @@ class InfluxDBExporter(base_exporter.Exporter):
         self.transport = transport(self)
         self.ipv4 = ipv4
         self.ipv6 = ipv6
-
+        print("influx_db at line 74")
         # 可以在这里一直挂着client吗？？
         self.client = InfluxDBClient(url="http://localhost:8086", token="nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==", org="MSRA")
-        
+        print("influx_db at line 77")
 
     @property
     def get_url(self):
@@ -91,6 +91,7 @@ class InfluxDBExporter(base_exporter.Exporter):
         :param list of opencensus.trace.span_data.SpanData span_datas:
             SpanData tuples to emit
         """
+        print("emitting")
         # 向数据库中加入数据点
         write_api = self.client.write_api(write_options=SYNCHRONOUS)
         for span in span_datas:
@@ -100,6 +101,7 @@ class InfluxDBExporter(base_exporter.Exporter):
             duration_mus = end_timestamp_mus - start_timestamp_mus
 
             p = Point(self.service_name).field("latency", duration_mus)
+            print("point ", p)
             # 需要攒一起再发？
             write_api.write(bucket=bucket, record=p)
 
@@ -165,32 +167,32 @@ class InfluxDBExporter(base_exporter.Exporter):
         return zipkin_spans
 '''
 
-def _extract_tags_from_span(attr):
-    if attr is None:
-        return {}
-    tags = {}
-    for attribute_key, attribute_value in attr.items():
-        if isinstance(attribute_value, (int, bool, float)):
-            value = str(attribute_value)
-        elif isinstance(attribute_value, str):
-            res, _ = check_str_length(str_to_check=attribute_value)
-            value = res
-        else:
-            logging.warning('Could not serialize tag %s', attribute_key)
-            continue
-        tags[attribute_key] = value
-    return tags
+# def _extract_tags_from_span(attr):
+#     if attr is None:
+#         return {}
+#     tags = {}
+#     for attribute_key, attribute_value in attr.items():
+#         if isinstance(attribute_value, (int, bool, float)):
+#             value = str(attribute_value)
+#         elif isinstance(attribute_value, str):
+#             res, _ = check_str_length(str_to_check=attribute_value)
+#             value = res
+#         else:
+#             logging.warning('Could not serialize tag %s', attribute_key)
+#             continue
+#         tags[attribute_key] = value
+#     return tags
 
 
-def _extract_annotations_from_span(span):
-    """Extract and convert time event annotations to zipkin annotations"""
-    if span.annotations is None:
-        return []
+# def _extract_annotations_from_span(span):
+#     """Extract and convert time event annotations to zipkin annotations"""
+#     if span.annotations is None:
+#         return []
 
-    annotations = []
-    for annotation in span.annotations:
-        event_timestamp_mus = timestamp_to_microseconds(annotation.timestamp)
-        annotations.append({'timestamp': int(round(event_timestamp_mus)),
-                            'value': annotation.description})
+#     annotations = []
+#     for annotation in span.annotations:
+#         event_timestamp_mus = timestamp_to_microseconds(annotation.timestamp)
+#         annotations.append({'timestamp': int(round(event_timestamp_mus)),
+#                             'value': annotation.description})
 
-    return annotations
+#     return annotations
