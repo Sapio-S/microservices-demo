@@ -48,9 +48,9 @@
 //     }
 //   });
 // }
-// import ExperimentalServer from 'ges';
+import ExperimentalServer from 'ges';
 
-const ExperimentalServer = require('ges');
+// const ExperimentalServer = require('ges');
 const path = require('path');
 
 // const grpc = require('grpc-middleware');
@@ -200,7 +200,6 @@ function main () {
       // postprocess
       const costtime = Date.now() - start;
       console.log('costtime is', costtime);
-      // console.log('response is ', context.response);
     }
   });
   
