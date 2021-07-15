@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
 
   logger.info("Tracing enabled.")
-  sampler = samplers.AlwaysOnSampler()
+  # sampler = samplers.AlwaysOnSampler()
 
   # exporter = stackdriver_exporter.StackdriverExporter(
   #   project_id=os.environ.get('GCP_PROJECT_ID'),
