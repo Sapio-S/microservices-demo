@@ -50,9 +50,9 @@
 // }
 // import ExperimentalServer from 'ges';
 
-const ExperimentalServer = require('ges');
+// const ExperimentalServer = require('ges');
 const path = require('path');
-// const interceptors = require('grpc-interceptors');
+const interceptors = require('grpc-interceptors');
 // const grpc = require('grpc-middleware');
 const grpc = require('grpc');
 const pino = require('pino');
