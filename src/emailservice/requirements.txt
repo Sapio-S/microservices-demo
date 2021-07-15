@@ -64,8 +64,8 @@ opencensus-context==0.1.2
     # via opencensus
 opencensus-ext-grpc==0.7.1
     # via -r requirements.in
-opencensus-ext-zipkin==0.2.2
-opencensus-ext-stackdriver==0.7.3  # via -r requirements.in
+#opencensus-ext-zipkin==0.2.2
+#opencensus-ext-stackdriver==0.7.3  # via -r requirements.in
     # via -r requirements.in
 opencensus==0.7.11
     # via
