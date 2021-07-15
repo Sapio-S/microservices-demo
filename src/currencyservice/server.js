@@ -217,11 +217,12 @@ function main () {
 
     // do stuff before call
     const start = Date.now();
-    try {
-      await next();
-    } catch(err) {
-      next();
-    }
+    // try {
+    //   await next();
+    // } catch(err) {
+    //   next();
+    // }
+    next();
     
     // do stuff after call
     const costtime = Date.now() - start;
