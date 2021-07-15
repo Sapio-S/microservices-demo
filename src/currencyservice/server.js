@@ -53,7 +53,7 @@
 // const ExperimentalServer = require('ges');
 const path = require('path');
 const grpc = require('grpc');
-const interceptors = require('grpc-interceptors');
+const interceptors = require('@echo-health/grpc-interceptors');
 // const grpc = require('grpc-middleware');
 
 const pino = require('pino');
