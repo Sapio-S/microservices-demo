@@ -44,8 +44,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
+	// influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	// "github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 var (
@@ -148,16 +148,16 @@ func serverInterceptor(ctx context.Context,
 	duration := end.Sub(start).Microseconds()
 	log.Info("latency", duration)
 
-	p := influxdb2.NewPoint(
-		"product catalog service", // ??
-        map[string]string{"_field": "latency"},
-        map[string]interface{}{"latency": duration},
-        start)
+	// p := influxdb2.NewPoint(
+	// 	"product catalog service", // ??
+    //     map[string]string{"_field": "latency"},
+    //     map[string]interface{}{"latency": duration},
+    //     start)
 
-	// ？？？？
-	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-	writeAPI.WritePoint(ctx, p)
+	// // ？？？？
+	// client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+	// writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+	// writeAPI.WritePoint(ctx, p)
 
 	return h, err
 }
