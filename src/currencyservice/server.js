@@ -217,12 +217,12 @@ function main () {
   const myMiddlewareFunc = function (ctx, next) {
 
     // do stuff before call
-    console.log('Making gRPC call...');
-
+    const start = Date.now();
     await next()
 
     // do stuff after call
-    console.log(ctx.status.code);
+    const costtime = Date.now() - start;
+    console.log('costtime is', costtime);
   }
 
   server.use(myMiddlewareFunc);
