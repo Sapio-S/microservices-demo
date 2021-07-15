@@ -43,6 +43,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 var (
@@ -135,19 +138,20 @@ func serverInterceptor(ctx context.Context,
 	handler grpc.UnaryHandler) (interface{}, error) {
 
 	start := time.Now()
-	// // Skip authorize when GetJWT is requested
-	// if info.FullMethod != "/proto.EventStoreService/GetJWT" {
-	// 	if err := authorize(ctx); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	// Calls the handler
 	h, err := handler(ctx, req)
+	log.Info(req)
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	log.Info("latency %s", duration)
+	log.Info("latency", duration)
+
+	p := influxdb2.NewPoint(
+		map[string]interface{}{
+			"latency": duration,
+		},
+	)
+	writeAPI.WritePoint(context.Background(), p)
 
 	return h, err
 }
@@ -180,6 +184,9 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 
 func run(port string) string {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+
 	if err != nil {
 		log.Fatal(err)
 	}

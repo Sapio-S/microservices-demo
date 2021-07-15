@@ -56,7 +56,7 @@ class HipsterShopServer {
       // do stuff after call
       const costtime = Date.now() - start;
       // console.log('costtime is', costtime);
-      const point1 = new Point('currency service').intField("latency", costtime)
+      const point1 = new Point('payment service').intField("latency", costtime)
       writeApi.writePoint(point1)
       console.log(` ${point1}`)
     }
