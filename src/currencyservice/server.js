@@ -48,11 +48,11 @@
 //     }
 //   });
 // }
-import ExperimentalServer from 'ges';
+// import ExperimentalServer from 'ges';
 
 // const ExperimentalServer = require('ges');
 const path = require('path');
-
+const interceptors = require('grpc-interceptors');
 // const grpc = require('grpc-middleware');
 const grpc = require('grpc');
 const pino = require('pino');
@@ -184,24 +184,48 @@ function check (call, callback) {
 
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
-  // const server = new grpc.Server(null, preHook, postHook);
-  const server = new ExperimentalServer();
 
+  // method 1
+  // const server = new grpc.Server(null, preHook, postHook);
+
+
+  // method 2
+  // const server = new ExperimentalServer();
+
+  // server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
+  // server.addService(healthProto.Health.service, {check});
+  
+  // // interceptor
+  // server.use(async (context, next) => {
+  //   // preprocess
+  //   const start = Date.now();
+  //   try {
+  //     await next();
+  //   } finally {
+  //     // postprocess
+  //     const costtime = Date.now() - start;
+  //     console.log('costtime is', costtime);
+  //   }
+  // });
+
+  // method 3
+  
+
+  const server = interceptors.serverProxy(new grpc.Server());
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
-  
-  // interceptor
-  server.use(async (context, next) => {
-    // preprocess
-    const start = Date.now();
-    try {
-      await next();
-    } finally {
-      // postprocess
-      const costtime = Date.now() - start;
-      console.log('costtime is', costtime);
-    }
-  });
+  const myMiddlewareFunc = function (ctx, next) {
+
+    // do stuff before call
+    console.log('Making gRPC call...');
+
+    await next()
+
+    // do stuff after call
+    console.log(ctx.status.code);
+  }
+
+  server.use(myMiddlewareFunc);
   
   server.bind(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure());
   server.start();
