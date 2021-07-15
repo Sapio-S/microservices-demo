@@ -157,7 +157,7 @@ func serverInterceptor(ctx context.Context,
 	// ？？？？
 	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
 	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-	writeAPI.WritePoint(p)
+	writeAPI.WritePoint(ctx, p)
 
 	return h, err
 }
