@@ -162,27 +162,46 @@ function check (call, callback) {
   callback(null, { status: 'SERVING' });
 }
 
-function preHook(context, request) {
-  console.log('in prehook');
-  context.time = new Date().getTime();
-} 
+// function preHook(context, request) {
+//   console.log('in prehook');
+//   context.time = new Date().getTime();
+// } 
 
-function postHook(err, context, request) {
-  console.log('in postHook');
-  let end = new Date().getTime();
-  console.log(context);
-  console.log(end - context.time); // 时间戳格式
-} 
+// function postHook(err, context, request) {
+//   console.log('in postHook');
+//   let end = new Date().getTime();
+//   console.log(context);
+//   console.log(end - context.time); // 时间戳格式
+// } 
 
 /**
  * Starts an RPC server that receives requests for the
  * CurrencyConverter service at the sample server port
  */
+
+ import ExperimentalServer from 'ges';
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
-  const server = new grpc.Server(null, preHook, postHook);
+  // const server = new grpc.Server(null, preHook, postHook);
+  const server = new ExperimentalServer();
+
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
+  
+  // interceptor
+  server.use(async (context, next) => {
+    // preprocess
+    const start = Date.now();
+    try {
+      await next();
+    } finally {
+      // postprocess
+      const costtime = Date.now() - start;
+      console.log('costtime is', costtime);
+      // console.log('response is ', context.response);
+    }
+  });
+  
   server.bind(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure());
   server.start();
 }

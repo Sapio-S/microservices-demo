@@ -30,7 +30,7 @@ COPY package*.json ./
 RUN npm install --only=production
 
 # 为interceptor引入
-RUN npm install grpc-middleware
+RUN npm install ges
 
 FROM base
 
