@@ -57,6 +57,8 @@ var (
 	port = "3550"
 
 	reloadCatalog bool
+
+	writeAPI 	 api.WriteAPI
 )
 
 func init() {
