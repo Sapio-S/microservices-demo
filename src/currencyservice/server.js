@@ -209,8 +209,6 @@ function main () {
   // });
 
   // method 3
-  
-
   const server = interceptors.serverProxy(new grpc.Server());
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
