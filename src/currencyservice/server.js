@@ -54,8 +54,6 @@
 const path = require('path');
 const grpc = require('grpc');
 const interceptors = require('@echo-health/grpc-interceptors');
-// const grpc = require('grpc-middleware');
-
 const {InfluxDB, Point, HttpError} = require('@influxdata/influxdb-client')
 
 const pino = require('pino');
@@ -235,9 +233,9 @@ function main () {
     // do stuff after call
     const costtime = Date.now() - start;
     // console.log('costtime is', costtime);
-    const point1 = new Point('temperature').intField("latency", costtime)
+    const point1 = new Point('currency service').intField("latency", costtime)
     writeApi.writePoint(point1)
-    console.log(` ${point1}`)
+    // console.log(` ${point1}`)
   }
 
   server.use(myMiddlewareFunc);

@@ -28,7 +28,10 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 RUN npm install --only=production
-RUN npm install grpc-middleware
+RUN apk add --no-cache git
+RUN npm install https://github.com/echo-health/node-grpc-interceptors.git --only=production
+RUN npm install @influxdata/influxdb-client-apis
+RUN npm install @influxdata/influxdb-client
 
 FROM base
 

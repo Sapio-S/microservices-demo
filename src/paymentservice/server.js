@@ -13,8 +13,10 @@
 // limitations under the License.
 
 const path = require('path');
-// const grpc = require('grpc');
-const grpc = require('grpc-middleware');
+const grpc = require('grpc');
+const interceptors = require('@echo-health/grpc-interceptors');
+const {InfluxDB, Point, HttpError} = require('@influxdata/influxdb-client')
+
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -27,6 +29,12 @@ const logger = pino({
   useLevelLabels: true
 });
 
+const url = 'http://localhost:8086/';
+const bucket = "trace";
+const token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==";
+const org = "MSRA";
+const writeApi = new InfluxDB({url, token}).getWriteApi(org, bucket, 'ms');
+
 class HipsterShopServer {
   constructor (protoRoot, port = HipsterShopServer.PORT) {
     this.port = port;
@@ -37,22 +45,26 @@ class HipsterShopServer {
     };
 
     // this.server = new grpc.Server();
-    this.server = new grpc.Server(null, this.preHook, this.postHook);
+    this.server = interceptors.serverProxy(new grpc.Server());
+    const myMiddlewareFunc = function (ctx, next) {
+  
+      // do stuff before call
+      const start = Date.now();
+  
+      next();
+      
+      // do stuff after call
+      const costtime = Date.now() - start;
+      // console.log('costtime is', costtime);
+      const point1 = new Point('currency service').intField("latency", costtime)
+      writeApi.writePoint(point1)
+      // console.log(` ${point1}`)
+    }
+  
+    this.server.use(myMiddlewareFunc);
  
     this.loadAllProtos(protoRoot);
   }
-
-  preHook(context, request) {
-    console.log('in prehook');
-    context.time = Date.now();
-  } 
- 
-  postHook(err, context, request) {
-    console.log('in postHook');
-    let end = Date.now();
-    console.log(context);
-    console.log(end - context.time); // 时间戳格式
-  } 
 
   /**
    * Handler for PaymentService.Charge.
