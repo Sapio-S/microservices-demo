@@ -35,7 +35,7 @@ from grpc_health.v1 import health_pb2_grpc
 # from opencensus.trace import tracer as tracer_module
 # from influx_db import InfluxDBExporter
 from grpc_interceptor import ServerInterceptor
-from grpc_interceptor.exceptions import GrpcException
+# from grpc_interceptor.exceptions import GrpcException
 
 from logger import getJSONLogger
 logger = getJSONLogger('emailservice-server')
@@ -130,7 +130,9 @@ class ExceptionToStatusInterceptor(ServerInterceptor):
     return res
 
 def start(dummy_mode):
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+  interceptors = [ExceptionToStatusInterceptor()]
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=interceptors)
 
 
   service = None

@@ -25,14 +25,16 @@ from concurrent import futures
 from google.auth.exceptions import DefaultCredentialsError
 import grpc
 # from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
-from opencensus.ext.grpc import server_interceptor
-from opencensus.trace import samplers
-from opencensus.common.transports.async_ import AsyncTransport
-from influx_db import InfluxDBExporter
+# from opencensus.ext.grpc import server_interceptor
+# from opencensus.trace import samplers
+# from opencensus.common.transports.async_ import AsyncTransport
+# from influx_db import InfluxDBExporter
 import demo_pb2
 import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
+
+from grpc_interceptor import ServerInterceptor
 
 from logger import getJSONLogger
 logger = getJSONLogger('recommendationservice-server')
@@ -90,6 +92,21 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
             status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
 
 
+class ExceptionToStatusInterceptor(ServerInterceptor):
+  def intercept(
+    self,
+    method,
+    request,
+    context: grpc.ServicerContext,
+     method_name: str,
+  ):
+    start = time()
+    res = method(request, context)
+    end = time()
+    latency = end - start
+    print(latency)
+    return res
+
 if __name__ == "__main__":
     logger.info("initializing recommendationservice")
 
@@ -102,8 +119,8 @@ if __name__ == "__main__":
     # except KeyError:
     #     logger.info("Profiler disabled.")
 
-    logger.info("Tracing enabled.")
-    sampler = samplers.AlwaysOnSampler()
+    # logger.info("Tracing enabled.")
+    # sampler = samplers.AlwaysOnSampler()
     
     # exporter = stackdriver_exporter.StackdriverExporter(
     #   project_id=os.environ.get('GCP_PROJECT_ID'),
@@ -116,7 +133,7 @@ if __name__ == "__main__":
     # )
     # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
 
-    tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
+    # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
     # try:
     #   if "DISABLE_TRACING" in os.environ:
     #     raise KeyError()
@@ -153,8 +170,12 @@ if __name__ == "__main__":
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
+    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
+    #                   interceptors=(tracer_interceptor,))
+    interceptors = [ExceptionToStatusInterceptor()]
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-                      interceptors=(tracer_interceptor,))
+        interceptors=interceptors)
+
 
     # add class to gRPC server
     service = RecommendationService()

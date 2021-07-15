@@ -58,7 +58,7 @@ var (
 
 	reloadCatalog bool
 
-	writeAPI 	 api.WriteAPI
+	// writeAPI 	 api.WriteAPI
 )
 
 func init() {
@@ -154,6 +154,9 @@ func serverInterceptor(ctx context.Context,
         map[string]interface{}{"latency": duration},
         start)
 
+	// ？？？？
+	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
 	writeAPI.WritePoint(p)
 
 	return h, err
@@ -187,8 +190,7 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 
 func run(port string) string {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
-	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+
 
 	if err != nil {
 		log.Fatal(err)

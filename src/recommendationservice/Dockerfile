@@ -29,6 +29,7 @@ WORKDIR /recommendationservice
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN pip install 'influxdb-client[ciso]'
+RUN pip install grpc-interceptor
 # add files into working directory
 COPY . .
 
