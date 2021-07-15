@@ -27,7 +27,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN yarn install ../grpc-interceptors/
+RUN yarn add ../grpc-interceptors/
 RUN npm install --only=production
 # 为interceptor引入
 # RUN npm install grpc-interceptor
