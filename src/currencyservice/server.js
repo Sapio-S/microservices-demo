@@ -48,11 +48,13 @@
 //     }
 //   });
 // }
+// import ExperimentalServer from 'ges';
 
+const ExperimentalServer = require('ges');
 const path = require('path');
 
-const grpc = require('grpc-middleware');
-// const grpc = require('grpc');
+// const grpc = require('grpc-middleware');
+const grpc = require('grpc');
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -179,7 +181,7 @@ function check (call, callback) {
  * CurrencyConverter service at the sample server port
  */
 
- import ExperimentalServer from 'ges';
+
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   // const server = new grpc.Server(null, preHook, postHook);
