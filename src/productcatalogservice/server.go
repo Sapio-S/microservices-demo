@@ -154,7 +154,7 @@ func serverInterceptor(ctx context.Context,
         map[string]interface{}{"latency": duration},
         start)
 
-	writeAPI.WritePoint(context.Background(), p)
+	writeAPI.WritePoint(ctx, p)
 
 	return h, err
 }
