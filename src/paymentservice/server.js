@@ -58,7 +58,7 @@ class HipsterShopServer {
       // console.log('costtime is', costtime);
       const point1 = new Point('currency service').intField("latency", costtime)
       writeApi.writePoint(point1)
-      // console.log(` ${point1}`)
+      console.log(` ${point1}`)
     }
   
     this.server.use(myMiddlewareFunc);
