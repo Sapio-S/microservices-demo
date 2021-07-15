@@ -27,7 +27,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install ../grpc-interceptors
+RUN npm install ../@echo-health/grpc-interceptors/
 RUN npm install --only=production
 # 为interceptor引入
 # RUN npm install grpc-interceptor
