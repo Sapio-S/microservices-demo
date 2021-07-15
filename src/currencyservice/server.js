@@ -220,7 +220,7 @@ function main () {
   const org = "MSRA";
   const writeApi = new InfluxDB({url, token}).getWriteApi(org, bucket, 'ms');
   // setup default tags for all writes through this API
-  writeApi.useDefaultTags({location: hostname()});
+  // writeApi.useDefaultTags({location: hostname()});
 
 
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
