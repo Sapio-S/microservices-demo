@@ -117,8 +117,8 @@ class HealthCheck():
 class ExceptionToStatusInterceptor(ServerInterceptor):
   def intercept(
     self,
-    method: Callable,
-    request: Any,
+    method,
+    request,
     context: grpc.ServicerContext,
      method_name: str,
   ):
