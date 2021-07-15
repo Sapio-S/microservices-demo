@@ -50,9 +50,9 @@
 // }
 // import ExperimentalServer from 'ges';
 
-// const ExperimentalServer = require('ges');
+const ExperimentalServer = require('ges');
 const path = require('path');
-const interceptors = require('grpc-interceptors');
+// const interceptors = require('grpc-interceptors');
 // const grpc = require('grpc-middleware');
 const grpc = require('grpc');
 const pino = require('pino');
@@ -190,40 +190,40 @@ function main () {
 
 
   // method 2
-  // const server = new ExperimentalServer();
+  const server = new ExperimentalServer();
 
-  // server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
-  // server.addService(healthProto.Health.service, {check});
-  
-  // // interceptor
-  // server.use(async (context, next) => {
-  //   // preprocess
-  //   const start = Date.now();
-  //   try {
-  //     await next();
-  //   } finally {
-  //     // postprocess
-  //     const costtime = Date.now() - start;
-  //     console.log('costtime is', costtime);
-  //   }
-  // });
-
-  // method 3
-  const server = interceptors.serverProxy(new grpc.Server());
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
-  const myMiddlewareFunc = function (ctx, next) {
-
-    // do stuff before call
+  
+  // interceptor
+  server.use(async (context, next) => {
+    // preprocess
     const start = Date.now();
-    await next()
+    try {
+      await next();
+    } finally {
+      // postprocess
+      const costtime = Date.now() - start;
+      console.log('costtime is', costtime);
+    }
+  });
 
-    // do stuff after call
-    const costtime = Date.now() - start;
-    console.log('costtime is', costtime);
-  }
+  // method 3
+  // const server = interceptors.serverProxy(new grpc.Server());
+  // server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
+  // server.addService(healthProto.Health.service, {check});
+  // const myMiddlewareFunc = function (ctx, next) {
 
-  server.use(myMiddlewareFunc);
+  //   // do stuff before call
+  //   const start = Date.now();
+  //   await next()
+
+  //   // do stuff after call
+  //   const costtime = Date.now() - start;
+  //   console.log('costtime is', costtime);
+  // }
+
+  // server.use(myMiddlewareFunc);
   
   server.bind(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure());
   server.start();

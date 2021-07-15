@@ -28,6 +28,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # RUN yarn add ../grpc-interceptors/
+RUN npm install git+https://github.com/echo-health/node-grpc-interceptors.git
 RUN npm install --only=production
 # 为interceptor引入
 # RUN npm install grpc-interceptor
