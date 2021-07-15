@@ -30,6 +30,8 @@ COPY package*.json ./
 # RUN yarn add ../grpc-interceptors/
 RUN apk add --no-cache git
 RUN npm install https://github.com/echo-health/node-grpc-interceptors.git --only=production
+RUN npm install @influxdata/influxdb-client-apis
+RUN npm install @influxdata/influxdb-client
 RUN npm install --only=production
 # 为interceptor引入
 # RUN npm install grpc-interceptor

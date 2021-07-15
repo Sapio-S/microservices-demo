@@ -56,6 +56,8 @@ const grpc = require('grpc');
 const interceptors = require('@echo-health/grpc-interceptors');
 // const grpc = require('grpc-middleware');
 
+const {InfluxDB, Point, HttpError} = require('@influxdata/influxdb-client')
+
 const pino = require('pino');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -211,22 +213,31 @@ function main () {
 
   // method 3
   const server = interceptors.serverProxy(new grpc.Server());
+
+  const url = 'http://localhost:8086/';
+  const bucket = "trace";
+  const token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==";
+  const org = "MSRA";
+  const writeApi = new InfluxDB({url, token}).getWriteApi(org, bucket, 'ms');
+  // setup default tags for all writes through this API
+  writeApi.useDefaultTags({location: hostname()});
+
+
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
   const myMiddlewareFunc = function (ctx, next) {
 
     // do stuff before call
     const start = Date.now();
-    // try {
-    //   await next();
-    // } catch(err) {
-    //   next();
-    // }
-    next();
+
+    await next();
     
     // do stuff after call
     const costtime = Date.now() - start;
-    console.log('costtime is', costtime);
+    // console.log('costtime is', costtime);
+    const point1 = new Point('temperature').intField("latency", costtime)
+    writeApi.writePoint(point1)
+    console.log(` ${point1}`)
   }
 
   server.use(myMiddlewareFunc);
