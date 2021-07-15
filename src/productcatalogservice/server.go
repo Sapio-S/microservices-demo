@@ -44,6 +44,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
+
 	// influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	// "github.com/influxdata/influxdb-client-go/v2/api"
 )
@@ -60,6 +63,19 @@ var (
 
 	// writeAPI 	 api.WriteAPI
 )
+
+type Server struct {
+	users map[string]string
+
+	Tracer       opentracing.Tracer
+	Registry     *registry.Client
+	Port         int
+	IpAddr       string
+	MongoSession *mgo.Session
+	Monitor      *common.MonitoringHelper
+}
+
+const name = "product catalog service"
 
 func init() {
 	log = logrus.New()
@@ -80,21 +96,6 @@ func init() {
 }
 
 func main() {
-	// go initTracing()
-	// if os.Getenv("DISABLE_TRACING") == "" {
-	// 	log.Info("Tracing enabled.")
-		
-	// } else {
-	// 	log.Info("Tracing disabled.")
-	// }
-
-	// if os.Getenv("DISABLE_PROFILER") == "" {
-	// 	log.Info("Profiling enabled.")
-	// 	go initProfiling("productcatalogservice", "1.0.0")
-	// } else {
-	// 	log.Info("Profiling disabled.")
-	// }
-
 	flag.Parse()
 
 	// set injected latency
@@ -133,55 +134,33 @@ func main() {
 	select {}
 }
 
-// Authorization unary interceptor function to handle authorize per RPC call
-func serverInterceptor(ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler) (interface{}, error) {
+// // Authorization unary interceptor function to handle authorize per RPC call
+// func serverInterceptor(ctx context.Context,
+// 	req interface{},
+// 	info *grpc.UnaryServerInfo,
+// 	handler grpc.UnaryHandler) (interface{}, error) {
 
-	start := time.Now()
-	// Calls the handler
-	h, err := handler(ctx, req)
-	log.Info(req)
+// 	start := time.Now()
+// 	// Calls the handler
+// 	h, err := handler(ctx, req)
+// 	log.Info(req)
 
-	end := time.Now()
-	duration := end.Sub(start).Microseconds()
-	log.Info("latency", duration)
+// 	end := time.Now()
+// 	duration := end.Sub(start).Microseconds()
+// 	log.Info("latency", duration)
 
-	// p := influxdb2.NewPoint(
-	// 	"product catalog service", // ??
-    //     map[string]string{"_field": "latency"},
-    //     map[string]interface{}{"latency": duration},
-    //     start)
+// 	// p := influxdb2.NewPoint(
+// 	// 	"product catalog service", // ??
+//     //     map[string]string{"_field": "latency"},
+//     //     map[string]interface{}{"latency": duration},
+//     //     start)
 
-	// // ？？？？
-	// client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-	// writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-	// writeAPI.WritePoint(ctx, p)
+// 	// // ？？？？
+// 	// client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+// 	// writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+// 	// writeAPI.WritePoint(ctx, p)
 
-	return h, err
-}
-
-// // authorize function authorizes the token received from Metadata
-// func authorize(ctx context.Context) error {
-// 	md, ok := metadata.FromIncomingContext(ctx)
-// 	if !ok {
-// 		return status.Errorf(codes.InvalidArgument, "Retrieving metadata is failed")
-// 	}
-
-// 	authHeader, ok := md["authorization"]
-// 	if !ok {
-// 		return status.Errorf(codes.Unauthenticated, "Authorization token is not supplied")
-// 	}
-
-// 	token := authHeader[0]
-// 	// validateToken function validates the token
-// 	err := validateToken(token)
-
-// 	if err != nil {
-// 		return status.Errorf(codes.Unauthenticated, err.Error())
-// 	}
-// 	return nil
+// 	return h, err
 // }
 
 func withServerUnaryInterceptor() grpc.ServerOption {
@@ -196,9 +175,32 @@ func run(port string) string {
 		log.Fatal(err)
 	}
 	var srv *grpc.Server
-	srv = grpc.NewServer(
-		withServerUnaryInterceptor(),
-	)
+
+	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
+
+	opts := []grpc.ServerOption{
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Timeout: time.Duration(keepaliveTimeout) * time.Second,
+		}),
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			PermitWithoutStream: true,
+		}),
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			// grpc_prometheus.UnaryServerInterceptor,
+			s.Monitor.MetricInterceptor(),
+			otgrpc.OpenTracingServerInterceptor(s.Tracer),
+		)),
+	}
+
+	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
+		opts = append(opts, tlsopt)
+	}
+
+	srv := grpc.NewServer(opts...)
+
+	// srv = grpc.NewServer(
+	// 	withServerUnaryInterceptor(),
+	// )
 	// ref: https://shijuvar.medium.com/writing-grpc-interceptors-in-go-bf3e7671fe48
 
 	// if os.Getenv("DISABLE_STATS") == "" {
