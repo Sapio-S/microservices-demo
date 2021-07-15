@@ -198,13 +198,17 @@ if __name__ == '__main__':
   # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
   # view_manager.register_exporter(exporter)
 
-  exporter=InfluxDBExporter(
-    service_name='email_service',
-    host_name='localhost',
-    port=9411,
-  )
 
-  tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+  # exporter=InfluxDBExporter(
+  #   service_name='email_service',
+  #   host_name='localhost',
+  #   port=9411,
+  # )
+
+  # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+
+  tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
+
   # # Tracing
   # try:
   #   if "DISABLE_TRACING" in os.environ:

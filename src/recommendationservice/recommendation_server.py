@@ -109,12 +109,14 @@ if __name__ == "__main__":
     #   project_id=os.environ.get('GCP_PROJECT_ID'),
     #   transport=AsyncTransport)
     
-    exporter=InfluxDBExporter(
-      service_name='recommendation_service',
-      host_name='localhost',
-      port=9411,
-    )
-    tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+    # exporter=InfluxDBExporter(
+    #   service_name='recommendation_service',
+    #   host_name='localhost',
+    #   port=9411,
+    # )
+    # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
+
+    tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
     # try:
     #   if "DISABLE_TRACING" in os.environ:
     #     raise KeyError()
