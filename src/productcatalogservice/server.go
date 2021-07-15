@@ -45,7 +45,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
+	// "github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 var (
@@ -147,9 +147,10 @@ func serverInterceptor(ctx context.Context,
 	log.Info("latency", duration)
 
 	p := influxdb2.NewPoint(
-		map[string]interface{}{
-			"latency": duration,
-		},
+		"product catalog service", // ??
+        map[string]string{"_field": "latency"},
+        map[string]interface{}{"latency": duration},
+        start)
 	)
 	writeAPI.WritePoint(context.Background(), p)
 

@@ -29,29 +29,17 @@ import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
-# from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
-# from opencensus.ext.prometheus import stats_exporter as prometheus
-# from opencensus.stats import stats as stats_module
-from opencensus.ext.grpc import server_interceptor
-from opencensus.common.transports.async_ import AsyncTransport
-from opencensus.trace import samplers
-#from opencensus.ext.zipkin.trace_exporter import ZipkinExporter
-from opencensus.trace import tracer as tracer_module
-from influx_db import InfluxDBExporter
-
-# import googleclouddebugger
-# import googlecloudprofiler
+# from opencensus.ext.grpc import server_interceptor
+# from opencensus.common.transports.async_ import AsyncTransport
+# from opencensus.trace import samplers
+# from opencensus.trace import tracer as tracer_module
+# from influx_db import InfluxDBExporter
+from grpc_interceptor import ServerInterceptor
+from grpc_interceptor.exceptions import GrpcException
 
 from logger import getJSONLogger
 logger = getJSONLogger('emailservice-server')
 
-# try:
-#     googleclouddebugger.enable(
-#         module='emailserver',
-#         version='1.0.0'
-#     )
-# except:
-#     pass
 
 # Loads confirmation email template from file
 env = Environment(
@@ -126,9 +114,47 @@ class HealthCheck():
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
 
+class ExceptionToStatusInterceptor(ServerInterceptor):
+  def intercept(
+    self,
+    method: Callable,
+    request: Any,
+    context: grpc.ServicerContext,
+     method_name: str,
+  ) -> Any:
+        """Override this method to implement a custom interceptor.
+         You should call method(request, context) to invoke the
+         next handler (either the RPC method implementation, or the
+         next interceptor in the list).
+         Args:
+             method: The next interceptor, or method implementation.
+             request: The RPC request, as a protobuf message.
+             context: The ServicerContext pass by gRPC to the service.
+             method_name: A string of the form
+                 "/protobuf.package.Service/Method"
+         Returns:
+             This should generally return the result of
+             method(request, context), which is typically the RPC
+             method response, as a protobuf message. The interceptor
+             is free to modify this in some way, however.
+         """
+  start = time()
+  try:
+    res = method(request, context)
+    end = time()
+    latency = end - start
+    print(latency)
+    
+    return res
+  except GrpcException as e:
+      context.set_code(e.status_code)
+      context.set_details(e.details)
+      raise
+
 def start(dummy_mode):
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-                       interceptors=(tracer_interceptor,))
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+
+
   service = None
   if dummy_mode:
     service = DummyEmailService()
@@ -148,44 +174,11 @@ def start(dummy_mode):
   except KeyboardInterrupt:
     server.stop(0)
 
-# def initStackdriverProfiling():
-#   project_id = None
-#   try:
-#     project_id = os.environ["GCP_PROJECT_ID"]
-#   except KeyError:
-#     # Environment variable not set
-#     pass
-
-#   for retry in range(1,4):
-#     try:
-#       if project_id:
-#         googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0, project_id=project_id)
-#       else:
-#         googlecloudprofiler.start(service='email_server', service_version='1.0.0', verbose=0)
-#       logger.info("Successfully started Stackdriver Profiler.")
-#       return
-#     except (BaseException) as exc:
-#       logger.info("Unable to start Stackdriver Profiler Python agent. " + str(exc))
-#       if (retry < 4):
-#         logger.info("Sleeping %d to retry initializing Stackdriver Profiler"%(retry*10))
-#         time.sleep (1)
-#       else:
-#         logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
-#   return
-
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
 
-  # # Profiler
-  # try:
-  #   if "DISABLE_PROFILER" in os.environ:
-  #     raise KeyError()
-  #   else:
-  #     logger.info("Profiler enabled.")
-  #     #initStackdriverProfiling()
-  # except KeyError:
-  #     logger.info("Profiler disabled.")
+
   logger.info("Tracing enabled.")
   sampler = samplers.AlwaysOnSampler()
 
@@ -207,7 +200,7 @@ if __name__ == '__main__':
 
   # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
 
-  tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
+  # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
 
   # # Tracing
   # try:

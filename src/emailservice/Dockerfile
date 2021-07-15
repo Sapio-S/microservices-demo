@@ -27,6 +27,7 @@ RUN pip install -r requirements.txt
 
 # RUN pip install grpc_interceptor
 RUN pip install 'influxdb-client[ciso]'
+RUN pip install grpc-interceptor
 
 FROM base as final
 # Enable unbuffered logging
