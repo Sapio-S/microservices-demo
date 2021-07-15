@@ -9,6 +9,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@echo-health/grpc-interceptors": "git+https://github.com/echo-health/node-grpc-interceptors.git",
     "@google-cloud/debug-agent": "5.1.3",
     "@google-cloud/profiler": "4.1.1",
     "@google-cloud/trace-agent": "5.1.3",
