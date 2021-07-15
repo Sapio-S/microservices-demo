@@ -164,12 +164,12 @@ function check (call, callback) {
 
 function preHook(context, request) {
   console.log('in prehook');
-  context.time = Date.now();
+  context.time = new Date().getTime();
 } 
 
 function postHook(err, context, request) {
   console.log('in postHook');
-  let end = Date.now();
+  let end = new Date().getTime();
   console.log(context);
   console.log(end - context.time); // 时间戳格式
 } 
