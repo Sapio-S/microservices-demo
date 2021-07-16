@@ -172,9 +172,9 @@ if __name__ == "__main__":
     # create gRPC server
     # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
     #                   interceptors=(tracer_interceptor,))
-    interceptors = [ExceptionToStatusInterceptor()]
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-        interceptors=interceptors)
+    # interceptors = [ExceptionToStatusInterceptor()]
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        # interceptors=interceptors)
 
 
     # add class to gRPC server

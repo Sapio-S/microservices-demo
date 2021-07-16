@@ -27,6 +27,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	// "common"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -44,8 +45,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/opentracing/opentracing-go"
+	// "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	// "github.com/opentracing/opentracing-go"
 
 	// influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	// "github.com/influxdata/influxdb-client-go/v2/api"
@@ -64,16 +65,16 @@ var (
 	// writeAPI 	 api.WriteAPI
 )
 
-type Server struct {
-	users map[string]string
+// type Server struct {
+// 	users map[string]string
 
-	Tracer       opentracing.Tracer
-	Registry     *registry.Client
-	Port         int
-	IpAddr       string
-	MongoSession *mgo.Session
-	Monitor      *common.MonitoringHelper
-}
+// 	Tracer       opentracing.Tracer
+// 	// Registry     *registry.Client
+// 	Port         int
+// 	IpAddr       string
+// 	// MongoSession *mgo.Session
+// 	Monitor      *common.MonitoringHelper
+// }
 
 const name = "product catalog service"
 
@@ -163,9 +164,9 @@ func main() {
 // 	return h, err
 // }
 
-func withServerUnaryInterceptor() grpc.ServerOption {
-	return grpc.UnaryInterceptor(serverInterceptor)
-}
+// func withServerUnaryInterceptor() grpc.ServerOption {
+// 	return grpc.UnaryInterceptor(serverInterceptor)
+// }
 
 func run(port string) string {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
@@ -176,27 +177,27 @@ func run(port string) string {
 	}
 	var srv *grpc.Server
 
-	keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
+	// keepaliveTimeout, _ := strconv.Atoi(common.GetCfgData(common.CfgKeySvrTimeout, nil))
 
-	opts := []grpc.ServerOption{
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			Timeout: time.Duration(keepaliveTimeout) * time.Second,
-		}),
-		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			PermitWithoutStream: true,
-		}),
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			// grpc_prometheus.UnaryServerInterceptor,
-			s.Monitor.MetricInterceptor(),
-			otgrpc.OpenTracingServerInterceptor(s.Tracer),
-		)),
-	}
+	// opts := []grpc.ServerOption{
+	// 	grpc.KeepaliveParams(keepalive.ServerParameters{
+	// 		Timeout: time.Duration(keepaliveTimeout) * time.Second,
+	// 	}),
+	// 	grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+	// 		PermitWithoutStream: true,
+	// 	}),
+	// 	grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+	// 		// grpc_prometheus.UnaryServerInterceptor,
+	// 		s.Monitor.MetricInterceptor(),
+	// 		otgrpc.OpenTracingServerInterceptor(s.Tracer),
+	// 	)),
+	// }
 
-	if tlsopt := tls.GetServerOpt(); tlsopt != nil {
-		opts = append(opts, tlsopt)
-	}
+	// if tlsopt := tls.GetServerOpt(); tlsopt != nil {
+	// 	opts = append(opts, tlsopt)
+	// }
 
-	srv := grpc.NewServer(opts...)
+	// srv := grpc.NewServer(opts...)
 
 	// srv = grpc.NewServer(
 	// 	withServerUnaryInterceptor(),
@@ -211,6 +212,8 @@ func run(port string) string {
 	// 	srv = grpc.NewServer()
 	// }
 
+	srv = grpc.NewServer()
+
 	svc := &productCatalog{}
 
 	pb.RegisterProductCatalogServiceServer(srv, svc)
@@ -218,103 +221,6 @@ func run(port string) string {
 	go srv.Serve(l)
 	return l.Addr().String()
 }
-
-// func initJaegerTracing() {
-// 	svcAddr := os.Getenv("JAEGER_SERVICE_ADDR")
-// 	if svcAddr == "" {
-// 		log.Info("jaeger initialization disabled.")
-// 		return
-// 	}
-// 	// Register the Jaeger exporter to be able to retrieve
-// 	// the collected spans.
-// 	exporter, err := jaeger.NewExporter(jaeger.Options{
-// 		Endpoint: fmt.Sprintf("http://%s", svcAddr),
-// 		Process: jaeger.Process{
-// 			ServiceName: "productcatalogservice",
-// 		},
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	trace.RegisterExporter(exporter)
-// 	log.Info("jaeger initialization completed.")
-// }
-
-// func initStats(exporter *stackdriver.Exporter) {
-// 	view.SetReportingPeriod(60 * time.Second)
-// 	view.RegisterExporter(exporter)
-// 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
-// 		log.Info("Error registering default server views")
-// 	} else {
-// 		log.Info("Registered default server views")
-// 	}
-// }
-
-// func initStackdriverTracing() {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		exporter, err := stackdriver.NewExporter(stackdriver.Options{})
-// 		if err != nil {
-// 			log.Warnf("failed to initialize Stackdriver exporter: %+v", err)
-// 		} else {
-// 			trace.RegisterExporter(exporter)
-// 			trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-// 			log.Info("registered Stackdriver tracing")
-
-// 			// Register the views to collect server stats.
-// 			initStats(exporter)
-// 			return
-// 		}
-// 		d := time.Second * 10 * time.Duration(i)
-// 		log.Infof("sleeping %v to retry initializing Stackdriver exporter", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("could not initialize Stackdriver exporter after retrying, giving up")
-// }
-
-
-// func initInfluxDB(){
-// 	register exporter
-// 	exporter, err := influx.NewExporter(influx.Options{
-// 		Endpoint: fmt.Sprintf("http://%s", svcAddr),
-// 		Process: influx.Process{
-// 			ServiceName: "productcatalogservice",
-// 		},
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	trace.RegisterExporter(exporter)
-// 	log.Info("influxDB initialization completed.")
-// }
-
-// func initTracing() {
-// 	initJaegerTracing()
-// 	initStackdriverTracing()
-// }
-
-// func initProfiling(service, version string) {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		if err := profiler.Start(profiler.Config{
-// 			Service:        service,
-// 			ServiceVersion: version,
-// 			// ProjectID must be set if not running on GCP.
-// 			// ProjectID: "my-project",
-// 		}); err != nil {
-// 			log.Warnf("failed to start profiler: %+v", err)
-// 		} else {
-// 			log.Info("started Stackdriver profiler")
-// 			return
-// 		}
-// 		d := time.Second * 10 * time.Duration(i)
-// 		log.Infof("sleeping %v to retry initializing Stackdriver profiler", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("could not initialize Stackdriver profiler after retrying, giving up")
-// }
 
 type productCatalog struct{}
 

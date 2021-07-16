@@ -29,12 +29,14 @@ import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
+from interceptor import InfluxInterceptor
+
 # from opencensus.ext.grpc import server_interceptor
 # from opencensus.common.transports.async_ import AsyncTransport
 # from opencensus.trace import samplers
 # from opencensus.trace import tracer as tracer_module
 # from influx_db import InfluxDBExporter
-from grpc_interceptor import ServerInterceptor
+# from grpc_interceptor import ServerInterceptor
 # from grpc_interceptor.exceptions import GrpcException
 
 from logger import getJSONLogger
@@ -114,26 +116,28 @@ class HealthCheck():
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
 
-class ExceptionToStatusInterceptor(ServerInterceptor):
-  def intercept(
-    self,
-    method,
-    request,
-    context: grpc.ServicerContext,
-     method_name: str,
-  ):
-    start = time()
-    res = method(request, context)
-    end = time()
-    latency = end - start
-    print(latency)
-    return res
+# class ExceptionToStatusInterceptor(ServerInterceptor):
+#   def intercept(
+#     self,
+#     method,
+#     request,
+#     context: grpc.ServicerContext,
+#     method_name: str,
+#   ):
+#     start = time()
+#     res = method(request, context)
+#     end = time()
+#     latency = end - start
+#     logger.info(latency)
+#     return res
+
+
 
 def start(dummy_mode):
-  interceptors = [ExceptionToStatusInterceptor()]
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-    interceptors=interceptors)
-
+  
+  influxInterceptor = InfluxInterceptor("email service")
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))#,
+   #interceptors=(influxInterceptor,))
 
   service = None
   if dummy_mode:
@@ -148,6 +152,7 @@ def start(dummy_mode):
   logger.info("listening on port: "+port)
   server.add_insecure_port('[::]:'+port)
   server.start()
+  print("can server start?")
   try:
     while True:
       time.sleep(3600)
