@@ -50,6 +50,8 @@ import (
 
 	// influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	// "github.com/influxdata/influxdb-client-go/v2/api"
+
+	"github.com/influxdata/influxdb-client-go/v2"
 )
 
 var (
@@ -135,38 +137,38 @@ func main() {
 	select {}
 }
 
-// // Authorization unary interceptor function to handle authorize per RPC call
-// func serverInterceptor(ctx context.Context,
-// 	req interface{},
-// 	info *grpc.UnaryServerInfo,
-// 	handler grpc.UnaryHandler) (interface{}, error) {
+// Authorization unary interceptor function to handle authorize per RPC call
+func serverInterceptor(ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (interface{}, error) {
 
-// 	start := time.Now()
-// 	// Calls the handler
-// 	h, err := handler(ctx, req)
-// 	log.Info(req)
+	start := time.Now()
+	// Calls the handler
+	h, err := handler(ctx, req)
+	log.Info(req)
 
-// 	end := time.Now()
-// 	duration := end.Sub(start).Microseconds()
-// 	log.Info("latency", duration)
+	end := time.Now()
+	duration := end.Sub(start).Microseconds()
+	log.Info("latency", duration)
 
-// 	// p := influxdb2.NewPoint(
-// 	// 	"product catalog service", // ??
-//     //     map[string]string{"_field": "latency"},
-//     //     map[string]interface{}{"latency": duration},
-//     //     start)
+	p := influxdb2.NewPoint(
+		"product catalog service", // ??
+        map[string]string{"_field": "latency"},
+        map[string]interface{}{"latency": duration},
+        start)
+	// ？？？？
+	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+	writeAPI.WritePoint(ctx, p)
+    // Ensures background processes finishes
+    client.Close()
+	return h, err
+}
 
-// 	// // ？？？？
-// 	// client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-// 	// writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-// 	// writeAPI.WritePoint(ctx, p)
-
-// 	return h, err
-// }
-
-// func withServerUnaryInterceptor() grpc.ServerOption {
-// 	return grpc.UnaryInterceptor(serverInterceptor)
-// }
+func withServerUnaryInterceptor() grpc.ServerOption {
+	return grpc.UnaryInterceptor(serverInterceptor)
+}
 
 func run(port string) string {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
@@ -199,9 +201,9 @@ func run(port string) string {
 
 	// srv := grpc.NewServer(opts...)
 
-	// srv = grpc.NewServer(
-	// 	withServerUnaryInterceptor(),
-	// )
+	srv = grpc.NewServer(
+		withServerUnaryInterceptor(),
+	)
 	// ref: https://shijuvar.medium.com/writing-grpc-interceptors-in-go-bf3e7671fe48
 
 	// if os.Getenv("DISABLE_STATS") == "" {
@@ -212,7 +214,7 @@ func run(port string) string {
 	// 	srv = grpc.NewServer()
 	// }
 
-	srv = grpc.NewServer()
+	// srv = grpc.NewServer()
 
 	svc := &productCatalog{}
 

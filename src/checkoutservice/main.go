@@ -36,6 +36,8 @@ import (
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/genproto"
 	money "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/money"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
+	"github.com/influxdata/influxdb-client-go/v2"
 )
 
 const (
@@ -77,11 +79,23 @@ func serverInterceptor(ctx context.Context,
 	start := time.Now()
 	// Calls the handler
 	h, err := handler(ctx, req)
+	log.Info(req)
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	log.Info("latency %s", duration)
+	log.Info("latency", duration)
 
+	p := influxdb2.NewPoint(
+		"checkout service", // ??
+        map[string]string{"_field": "latency"},
+        map[string]interface{}{"latency": duration},
+        start)
+	// ？？？？
+	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
+	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
+	writeAPI.WritePoint(ctx, p)
+    // Ensures background processes finishes
+    client.Close()
 	return h, err
 }
 

@@ -18,6 +18,12 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using StackExchange.Redis;
 using Google.Protobuf;
+using System.Collections.Generic;
+
+using InfluxDB.Client;
+using InfluxDB.Client.Api.Domain;
+using InfluxDB.Client.Core;
+using InfluxDB.Client.Writes;
 
 namespace cartservice.cartstore
 {
@@ -33,7 +39,44 @@ namespace cartservice.cartstore
         private readonly byte[] emptyCartBytes;
         private readonly string connectionString;
 
+        private static readonly char[] Token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==".ToCharArray();
+        private static List<InfluxDB.Client.Writes.PointData> points  = new List<InfluxDB.Client.Writes.PointData>();
+        // private static List<string> measurement = new List<string>();
+        private static int cnt = 0;
+
         private readonly ConfigurationOptions redisConnectionOptions;
+
+        public void Write2Influx(){
+            if(cnt < 10){
+                return;
+            }
+            var influxDBClient = InfluxDBClientFactory.Create("http://localhost:8086", Token);
+
+            using (var writeApi = influxDBClient.GetWriteApi())
+            {
+                // writeApi.WritePoint("trace", "MSRA", points);
+                for (int i = 0; i < cnt; i++){
+                    writeApi.WritePoint("trace", "MSRA", points[i]);
+                }
+            }
+            influxDBClient.Dispose();
+            cnt = 0;
+            points.Clear();
+        }
+
+        public StackExchange.Redis.IDatabase redis_getDatabase(){
+            int start = DateTime.Now.Millisecond;
+            var s = redis.GetDatabase();
+            int latency = DateTime.Now.Millisecond - start;
+            var point = PointData.Measurement("get database")
+                .Field("latency", latency)
+                .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
+            points.Add(point);
+            Console.WriteLine("latency "+latency.ToString());
+            cnt += 1;
+            Write2Influx();
+            return s;
+        }
 
         public RedisCartStore(string redisAddress)
         {
@@ -49,6 +92,7 @@ namespace cartservice.cartstore
             redisConnectionOptions.ReconnectRetryPolicy = new ExponentialRetry(100);
 
             redisConnectionOptions.KeepAlive = 180;
+
         }
 
         public Task InitializeAsync()
@@ -84,7 +128,8 @@ namespace cartservice.cartstore
                 }
 
                 Console.WriteLine("Successfully connected to Redis");
-                var cache = redis.GetDatabase();
+
+                var cache = redis_getDatabase();
 
                 Console.WriteLine("Performing small test");
                 cache.StringSet("cart", "OK" );
@@ -115,11 +160,20 @@ namespace cartservice.cartstore
             {
                 EnsureRedisConnected();
 
-                var db = redis.GetDatabase();
+                var db = redis_getDatabase();
 
                 // Access the cart from the cache
+                int start = DateTime.Now.Millisecond;
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
-
+                int latency = DateTime.Now.Millisecond - start;
+                var point = PointData.Measurement("hash get async")
+                    .Field("latency", latency)
+                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
+                points.Add(point);
+                Console.WriteLine("latency "+latency.ToString());
+                cnt += 1;
+                Write2Influx();
+                
                 Hipstershop.Cart cart;
                 if (value.IsNull)
                 {
@@ -141,7 +195,17 @@ namespace cartservice.cartstore
                     }
                 }
 
+
+                start = DateTime.Now.Millisecond;
                 await db.HashSetAsync(userId, new[]{ new HashEntry(CART_FIELD_NAME, cart.ToByteArray()) });
+                latency = DateTime.Now.Millisecond - start;
+                var point2 = PointData.Measurement("hash set async")
+                    .Field("latency", latency)
+                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
+                points.Add(point2);
+                Console.WriteLine("latency "+latency.ToString());
+                cnt += 1;
+                Write2Influx();
             }
             catch (Exception ex)
             {
@@ -156,10 +220,20 @@ namespace cartservice.cartstore
             try
             {
                 EnsureRedisConnected();
-                var db = redis.GetDatabase();
+                var db = redis_getDatabase();
 
                 // Update the cache with empty cart for given user
+                int start = DateTime.Now.Millisecond;
                 await db.HashSetAsync(userId, new[] { new HashEntry(CART_FIELD_NAME, emptyCartBytes) });
+                int latency = DateTime.Now.Millisecond - start;
+                var point = PointData.Measurement("hash set async")
+                    .Field("latency", latency)
+                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
+                points.Add(point);
+                Console.WriteLine("latency "+latency.ToString());
+                cnt += 1;
+                Write2Influx();
+                
             }
             catch (Exception ex)
             {
@@ -175,10 +249,19 @@ namespace cartservice.cartstore
             {
                 EnsureRedisConnected();
 
-                var db = redis.GetDatabase();
+                var db = redis_getDatabase();
 
                 // Access the cart from the cache
+                int start = DateTime.Now.Millisecond;
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
+                int latency = DateTime.Now.Millisecond - start;
+                var point = PointData.Measurement("hash get async")
+                    .Field("latency", latency)
+                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
+                points.Add(point);
+                Console.WriteLine("latency "+latency.ToString());
+                cnt += 1;
+                Write2Influx();
 
                 if (!value.IsNull)
                 {
@@ -198,7 +281,7 @@ namespace cartservice.cartstore
         {
             try
             {
-                var cache = redis.GetDatabase();
+                var cache = redis_getDatabase();
                 var res = cache.Ping();
                 return res != TimeSpan.Zero;
             }
