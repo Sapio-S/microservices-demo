@@ -34,7 +34,9 @@ import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
-from grpc_interceptor import ServerInterceptor
+# from grpc_interceptor import ServerInterceptor
+from interceptor import InfluxInterceptor
+
 
 from logger import getJSONLogger
 logger = getJSONLogger('recommendationservice-server')
@@ -92,20 +94,20 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
             status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
 
 
-class ExceptionToStatusInterceptor(ServerInterceptor):
-  def intercept(
-    self,
-    method,
-    request,
-    context: grpc.ServicerContext,
-     method_name: str,
-  ):
-    start = time()
-    res = method(request, context)
-    end = time()
-    latency = end - start
-    print(latency)
-    return res
+# class ExceptionToStatusInterceptor(ServerInterceptor):
+#   def intercept(
+#     self,
+#     method,
+#     request,
+#     context: grpc.ServicerContext,
+#      method_name: str,
+#   ):
+#     start = time()
+#     res = method(request, context)
+#     end = time()
+#     latency = end - start
+#     print(latency)
+#     return res
 
 if __name__ == "__main__":
     logger.info("initializing recommendationservice")
@@ -170,11 +172,8 @@ if __name__ == "__main__":
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
-    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),
-    #                   interceptors=(tracer_interceptor,))
-    # interceptors = [ExceptionToStatusInterceptor()]
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        # interceptors=interceptors)
+    influxInterceptor = InfluxInterceptor("recommendation server")
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
 
 
     # add class to gRPC server

@@ -135,9 +135,8 @@ class HealthCheck():
 
 def start(dummy_mode):
   
-  influxInterceptor = InfluxInterceptor("email service")
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))#,
-   #interceptors=(influxInterceptor,))
+  influxInterceptor = InfluxInterceptor("email server")
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
 
   service = None
   if dummy_mode:
@@ -152,7 +151,7 @@ def start(dummy_mode):
   logger.info("listening on port: "+port)
   server.add_insecure_port('[::]:'+port)
   server.start()
-  print("can server start?")
+
   try:
     while True:
       time.sleep(3600)
