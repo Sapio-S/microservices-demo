@@ -59,10 +59,10 @@ public class InfluxInterceptor implements ServerInterceptor {
       ServerCallHandler<ReqT, RespT> next) {
     logger.info("header received from client:" + requestHeaders);
     long start = System.currentTimeMillis();
-    ServerCall.Listener<ReqT> res =  next.startCall(call, requestHeaders);
+    ServerCall.Listener<ReqT> res = next.startCall(call, requestHeaders);
     long end = System.currentTimeMillis();
     logger.info("latency is "+Long.toString(end-start));
-    write2influx(end-start);
+    // write2influx(end-start);
     return res;
   }
 }

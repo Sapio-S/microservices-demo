@@ -20,51 +20,19 @@ import time
 import traceback
 from concurrent import futures
 
-# import googleclouddebugger
-# import googlecloudprofiler
+
 from google.auth.exceptions import DefaultCredentialsError
 import grpc
-# from opencensus.ext.stackdriver import trace_exporter as stackdriver_exporter
-# from opencensus.ext.grpc import server_interceptor
-# from opencensus.trace import samplers
-# from opencensus.common.transports.async_ import AsyncTransport
-# from influx_db import InfluxDBExporter
 import demo_pb2
 import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
-# from grpc_interceptor import ServerInterceptor
 from interceptor import InfluxInterceptor
 
 
 from logger import getJSONLogger
 logger = getJSONLogger('recommendationservice-server')
-
-# def initStackdriverProfiling():
-#   project_id = None
-#   try:
-#     project_id = os.environ["GCP_PROJECT_ID"]
-#   except KeyError:
-#     # Environment variable not set
-#     pass
-
-#   for retry in range(1,4):
-#     try:
-#       if project_id:
-#         googlecloudprofiler.start(service='recommendation_server', service_version='1.0.0', verbose=0, project_id=project_id)
-#       else:
-#         googlecloudprofiler.start(service='recommendation_server', service_version='1.0.0', verbose=0)
-#       logger.info("Successfully started Stackdriver Profiler.")
-#       return
-#     except (BaseException) as exc:
-#       logger.info("Unable to start Stackdriver Profiler Python agent. " + str(exc))
-#       if (retry < 4):
-#         logger.info("Sleeping %d seconds to retry Stackdriver Profiler agent initialization"%(retry*10))
-#         time.sleep (1)
-#       else:
-#         logger.warning("Could not initialize Stackdriver Profiler after retrying, giving up")
-#   return
 
 class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
     def ListRecommendations(self, request, context):
@@ -75,6 +43,7 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
         filtered_products = list(set(product_ids)-set(request.product_ids))
         num_products = len(filtered_products)
         num_return = min(max_responses, num_products)
+        # print(product_ids)
         # sample list of indicies to return
         indices = random.sample(range(num_products), num_return)
         # fetch product ids from indices
@@ -94,74 +63,8 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
             status=health_pb2.HealthCheckResponse.UNIMPLEMENTED)
 
 
-# class ExceptionToStatusInterceptor(ServerInterceptor):
-#   def intercept(
-#     self,
-#     method,
-#     request,
-#     context: grpc.ServicerContext,
-#      method_name: str,
-#   ):
-#     start = time()
-#     res = method(request, context)
-#     end = time()
-#     latency = end - start
-#     print(latency)
-#     return res
-
 if __name__ == "__main__":
     logger.info("initializing recommendationservice")
-
-    # try:
-    #   if "DISABLE_PROFILER" in os.environ:
-    #     raise KeyError()
-    #   else:
-    #     logger.info("Profiler enabled.")
-    #     initStackdriverProfiling()
-    # except KeyError:
-    #     logger.info("Profiler disabled.")
-
-    # logger.info("Tracing enabled.")
-    # sampler = samplers.AlwaysOnSampler()
-    
-    # exporter = stackdriver_exporter.StackdriverExporter(
-    #   project_id=os.environ.get('GCP_PROJECT_ID'),
-    #   transport=AsyncTransport)
-    
-    # exporter=InfluxDBExporter(
-    #   service_name='recommendation_service',
-    #   host_name='localhost',
-    #   port=9411,
-    # )
-    # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
-
-    # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
-    # try:
-    #   if "DISABLE_TRACING" in os.environ:
-    #     raise KeyError()
-    #   else:
-
-    # except (KeyError, DefaultCredentialsError):
-    #     logger.info("Tracing disabled.")
-    #     tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
-
-
-    # try:
-    #   if "DISABLE_DEBUGGER" in os.environ:
-    #     raise KeyError()
-    #   else:
-    #     logger.info("Debugger enabled.")
-    #     try:
-    #       googleclouddebugger.enable(
-    #           module='recommendationserver',
-    #           version='1.0.0'
-    #       )
-    #     except (Exception, DefaultCredentialsError):
-    #         logger.error("Could not enable debugger")
-    #         logger.error(traceback.print_exc())
-    #         pass
-    # except (Exception, DefaultCredentialsError):
-    #     logger.info("Debugger disabled.")
 
     port = os.environ.get('PORT', "8080")
     catalog_addr = os.environ.get('PRODUCT_CATALOG_SERVICE_ADDR', '')

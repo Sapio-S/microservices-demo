@@ -72,7 +72,7 @@ func serverInterceptor(ctx context.Context,
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	log.Info("latency", duration)
+	
 
 	p := influxdb2.NewPoint(
 		"shipping service", // ??
@@ -85,6 +85,7 @@ func serverInterceptor(ctx context.Context,
 	writeAPI.WritePoint(ctx, p)
     // Ensures background processes finishes
     client.Close()
+	log.Info("latency", duration)
 	return h, err
 }
 

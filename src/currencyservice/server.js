@@ -234,7 +234,7 @@ function main () {
     const costtime = Date.now() - start;
     // console.log('costtime is', costtime);
     const point1 = new Point('currency service').intField("latency", costtime)
-    writeApi.writePoint(point1)
+    // writeApi.writePoint(point1)
     console.log(` ${point1}`)
   }
 
