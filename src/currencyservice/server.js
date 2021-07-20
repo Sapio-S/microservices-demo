@@ -231,7 +231,7 @@ function main () {
     await next();
     
     // do stuff after call
-    const costtime = process.hrtime.bigint() - start;
+    const costtime = (process.hrtime.bigint() - start)/1000;
     // console.log('costtime is', costtime);
     const point1 = new Point('currency service').intField("latency", costtime)
     // writeApi.writePoint(point1)
