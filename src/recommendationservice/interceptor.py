@@ -1,10 +1,11 @@
-import grpc
+# import grpc
 import time
 
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
+from grpc_interceptor import ServerInterceptor
 
-class InfluxInterceptor(grpc.ServerInterceptor):
+class InfluxInterceptor(ServerInterceptor):
 
     def __init__(self, name):
         self.service = name
@@ -15,10 +16,10 @@ class InfluxInterceptor(grpc.ServerInterceptor):
         
 
     def intercept_service(self, continuation, handler_call_details):
-        start = time.time()
+        start = time.time_ns()
         res = continuation(handler_call_details)
-        end = time.time()
-        latency = end - start
+        end = time.time_ns()
+        latency = int((end - start)/1000)
         self.cnt += 1
         self.total += 1
         p = Point(self.service).tag("lat_tag", str(self.total)).field("latency", latency)
@@ -37,3 +38,45 @@ class InfluxInterceptor(grpc.ServerInterceptor):
         print(points)
         self.cnt = 0
         self.points = []
+    
+    def intercept(
+        self,
+        method,
+        request,
+        context,
+        method_name,
+    ):
+        """Override this method to implement a custom interceptor.
+         You should call method(request, context) to invoke the
+         next handler (either the RPC method implementation, or the
+         next interceptor in the list).
+         Args:
+             method: The next interceptor, or method implementation.
+             request: The RPC request, as a protobuf message.
+             context: The ServicerContext pass by gRPC to the service.
+             method_name: A string of the form
+                 "/protobuf.package.Service/Method"
+         Returns:
+             This should generally return the result of
+             method(request, context), which is typically the RPC
+             method response, as a protobuf message. The interceptor
+             is free to modify this in some way, however.
+         """
+        start = time.time_ns()
+        res = method(request, context)
+        end = time.time_ns()
+        latency = end - start
+        self.cnt += 1
+        self.total += 1
+        p = Point(self.service).tag("lat_tag", str(self.total)).field("latency", latency)
+        self.points.append(p)
+        print(latency)
+        # if self.cnt > 0:
+        #     self.write2influx()
+        return res
+        # try:
+        #     return 
+        # except GrpcException as e:
+        #     context.set_code(e.status_code)
+        #     context.set_details(e.details)
+        #     raise

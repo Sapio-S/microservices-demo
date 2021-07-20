@@ -71,7 +71,7 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug("request started")
 	defer func() {
 		log.WithFields(logrus.Fields{
-			"http.resp.took_ms": int64(time.Since(start) / time.Millisecond),
+			"http.resp.took_us": int64(time.Since(start).Microseconds()), //test?
 			"http.resp.status":  rr.status,
 			"http.resp.bytes":   rr.b}).Debugf("request complete")
 	}()

@@ -46,19 +46,17 @@ class HipsterShopServer {
 
     // this.server = new grpc.Server();
     this.server = interceptors.serverProxy(new grpc.Server());
-    const myMiddlewareFunc = function (ctx, next) {
+    const myMiddlewareFunc = async function (ctx, next) {
   
       // do stuff before call
-      const start = Date.now();
-  
-      next();
-      
+      const start = process.hrtime.bigint(); // gives precision in ns
+      await next();
       // do stuff after call
-      const costtime = Date.now() - start;
+      const costtime = (process.hrtime.bigint() - start)/1000;
       // console.log('costtime is', costtime);
       const point1 = new Point('payment service').intField("latency", costtime)
       // writeApi.writePoint(point1)
-      console.log(` ${point1}`)
+      console.log(`latency ${costtime}`)
     }
   
     this.server.use(myMiddlewareFunc);

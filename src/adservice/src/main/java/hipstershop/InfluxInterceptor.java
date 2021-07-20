@@ -58,10 +58,10 @@ public class InfluxInterceptor implements ServerInterceptor {
       final Metadata requestHeaders,
       ServerCallHandler<ReqT, RespT> next) {
     logger.info("header received from client:" + requestHeaders);
-    long start = System.currentTimeMillis();
+    long start = System.nanoTime();
     ServerCall.Listener<ReqT> res = next.startCall(call, requestHeaders);
-    long end = System.currentTimeMillis();
-    logger.info("latency is "+Long.toString(end-start));
+    long end = System.nanoTime() - start;
+    logger.info("latency is "+Long.toString(end / 1000)); // change into ms
     // write2influx(end-start);
     return res;
   }

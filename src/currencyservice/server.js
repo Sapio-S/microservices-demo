@@ -223,19 +223,19 @@ function main () {
 
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
-  const myMiddlewareFunc = function (ctx, next) {
+  const myMiddlewareFunc = async function (ctx, next) {
 
     // do stuff before call
-    const start = Date.now();
+    const start = process.hrtime.bigint(); // gives precision in ns
 
-    next();
+    await next();
     
     // do stuff after call
-    const costtime = Date.now() - start;
+    const costtime = process.hrtime.bigint() - start;
     // console.log('costtime is', costtime);
     const point1 = new Point('currency service').intField("latency", costtime)
     // writeApi.writePoint(point1)
-    console.log(` ${point1}`)
+    console.log(`latency ${costtime}`)
   }
 
   server.use(myMiddlewareFunc);

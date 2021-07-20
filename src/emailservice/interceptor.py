@@ -14,10 +14,11 @@ class InfluxInterceptor(grpc.ServerInterceptor):
         
 
     def intercept_service(self, continuation, handler_call_details):
-        start = time.time()
+        start = time.time_ns()
         res = continuation(handler_call_details)
-        end = time.time()
-        latency = end - start
+        print(res)
+        end = time.time_ns()
+        latency = int((end - start)/1000)
         self.cnt += 1
         self.total += 1
         p = Point(self.service).field("latency", latency)

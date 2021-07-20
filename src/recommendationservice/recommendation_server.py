@@ -75,9 +75,13 @@ if __name__ == "__main__":
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
-    influxInterceptor = InfluxInterceptor("recommendation server")
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
-
+    # influxInterceptor = InfluxInterceptor("recommendation server")
+    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
+    interceptors = [InfluxInterceptor("recommendation server")]
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=interceptors
+    )
 
     # add class to gRPC server
     service = RecommendationService()
