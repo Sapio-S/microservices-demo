@@ -116,27 +116,16 @@ class HealthCheck():
     return health_pb2.HealthCheckResponse(
       status=health_pb2.HealthCheckResponse.SERVING)
 
-# class ExceptionToStatusInterceptor(ServerInterceptor):
-#   def intercept(
-#     self,
-#     method,
-#     request,
-#     context: grpc.ServicerContext,
-#     method_name: str,
-#   ):
-#     start = time()
-#     res = method(request, context)
-#     end = time()
-#     latency = end - start
-#     logger.info(latency)
-#     return res
-
-
 
 def start(dummy_mode):
   
-  influxInterceptor = InfluxInterceptor("email server")
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
+  # influxInterceptor = InfluxInterceptor("email server")
+  # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
+  interceptors = [InfluxInterceptor("email")]
+  server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=interceptors
+    )
 
   service = None
   if dummy_mode:
@@ -161,39 +150,6 @@ def start(dummy_mode):
 
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
-
-
   logger.info("Tracing enabled.")
-  # sampler = samplers.AlwaysOnSampler()
-
-  # exporter = stackdriver_exporter.StackdriverExporter(
-  #   project_id=os.environ.get('GCP_PROJECT_ID'),
-  #   transport=AsyncTransport)
-
-  # stats = stats_module.stats
-  # view_manager = stats.view_manager
-  # exporter = prometheus.new_stats_exporter(prometheus.Options(namespace="email", port=8000))
-  # view_manager.register_exporter(exporter)
-
-
-  # exporter=InfluxDBExporter(
-  #   service_name='email_service',
-  #   host_name='localhost',
-  #   port=9411,
-  # )
-
-  # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor(sampler, exporter)
-
-  # tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
-
-  # # Tracing
-  # try:
-  #   if "DISABLE_TRACING" in os.environ:
-  #     raise KeyError()
-  #   else:
-      
-  # except (KeyError, DefaultCredentialsError):
-  #     logger.info("Tracing disabled.")
-  #     tracer_interceptor = server_interceptor.OpenCensusServerInterceptor()
 
   start(dummy_mode = True)

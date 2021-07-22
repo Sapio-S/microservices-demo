@@ -29,11 +29,36 @@ const logger = pino({
   useLevelLabels: true
 });
 
-const url = 'http://localhost:8086/';
-const bucket = "trace";
-const token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==";
-const org = "MSRA";
-const writeApi = new InfluxDB({url, token}).getWriteApi(org, bucket, 'ms');
+const token = 'EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==';
+const org = '1205402283@qq.com';
+const bucket = 'trace';
+const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
+// explains all write options
+const writeOptions = {
+  /* the maximum points/line to send in a single batch to InfluxDB server */
+  batchSize: 100, 
+  /* default tags to add to every point */
+  // defaultTags: {location: hostname},
+  /* maximum time in millis to keep points in an unflushed batch, 0 means don't periodically flush */
+  flushInterval: 1000,
+  /* maximum size of the retry buffer - it contains items that could not be sent for the first time */
+  maxBufferLines: 30000,
+  /* the count of retries, the delays between retries follow an exponential backoff strategy if there is no Retry-After HTTP header */
+  maxRetries: 3,
+  /* maximum delay between retries in milliseconds */
+  maxRetryDelay: 15000,
+  /* minimum delay between retries in milliseconds */
+  minRetryDelay: 1000, // minimum delay between retries
+  /* a random value of up to retryJitter is added when scheduling next retry */
+  retryJitter: 1000,
+  // ... or you can customize what to do on write failures when using a writeFailed fn, see the API docs for details
+  // writeFailed: function(error, lines, failedAttempts){/** return promise or void */},
+}
+const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
+function getNanoSecTime() {
+  var hrTime = process.hrtime();
+  return hrTime[0] * 1000000000 + hrTime[1];
+}
 
 class HipsterShopServer {
   constructor (protoRoot, port = HipsterShopServer.PORT) {
@@ -47,16 +72,28 @@ class HipsterShopServer {
     // this.server = new grpc.Server();
     this.server = interceptors.serverProxy(new grpc.Server());
     const myMiddlewareFunc = async function (ctx, next) {
-  
       // do stuff before call
-      const start = process.hrtime.bigint(); // gives precision in ns
-      await next();
+      const start = getNanoSecTime(); // gives precision in ns
+  
+      try{
+        await next();
+      }
+      catch(e){
+        console.log("error!");
+      }
+
+      // console.log(ctx);
       // do stuff after call
-      const costtime = (process.hrtime.bigint() - start)/1000;
-      // console.log('costtime is', costtime);
-      const point1 = new Point('payment service').intField("latency", costtime)
-      // writeApi.writePoint(point1)
-      console.log(`latency ${costtime}`)
+      const costtime = (getNanoSecTime() - start)/1000;
+      if(ctx.call.request.hasOwnProperty("service")){ // probe check
+  
+      }
+      else{ // charge
+        const point = new Point('service_metric').floatField("latency", costtime).tag("service", "payment").tag("method", "charge").timestamp(new Date())
+        writeApi.writePoint(point)
+        // console.log(`latency ${costtime}`)
+      }
+      
     }
   
     this.server.use(myMiddlewareFunc);

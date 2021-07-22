@@ -25,29 +25,25 @@ namespace cartservice.cartstore
         private readonly byte[] emptyCartBytes;
         private readonly string connectionString;
 
-        private static readonly char[] Token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==".ToCharArray();
-        private static List<InfluxDB.Client.Writes.PointData> points  = new List<InfluxDB.Client.Writes.PointData>();
-        // private static List<string> measurement = new List<string>();
-        private static int cnt = 0;
-
+        // const string token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
+        const string bucket = "trace";
+        const string org = "1205402283@qq.com";
         private readonly ConfigurationOptions redisConnectionOptions;
 
-        public void Write2Influx(){
-            if(cnt < 10){
-                return;
-            }
-            var influxDBClient = InfluxDBClientFactory.Create("http://localhost:8086", Token);
+        private InfluxDBClient influxclient;
+        private WriteApi writeApi0;
+        public void initInflux(){
+            this.influxclient = InfluxDBClientFactory.Create("https://eastus-1.azure.cloud2.influxdata.com", "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==");
+            var options = InfluxDB.Client.WriteOptions.CreateNew()
+                .BatchSize(100)
+                .MaxRetryDelay(2_000)
+                .MaxRetries(5)
+                .Build();
+            this.writeApi0 = this.influxclient.GetWriteApi(options);
+        }
 
-            using (var writeApi = influxDBClient.GetWriteApi())
-            {
-                // writeApi.WritePoint("trace", "MSRA", points);
-                for (int i = 0; i < cnt; i++){
-                    writeApi.WritePoint("trace", "MSRA", points[i]);
-                }
-            }
-            influxDBClient.Dispose();
-            cnt = 0;
-            points.Clear();
+        public void Write2Influx(PointData p){
+            writeApi0.WritePoint(bucket, org, p);
         }
 
         public RedisCartStore(string redisAddress)
@@ -70,6 +66,7 @@ namespace cartservice.cartstore
         public Task InitializeAsync()
         {
             EnsureRedisConnected();
+            initInflux();
             return Task.CompletedTask;
         }
 
@@ -140,13 +137,10 @@ namespace cartservice.cartstore
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
-                var point = PointData.Measurement("hash get async")
-                    .Field("latency", latency)
-                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
-                points.Add(point);
+                var point = PointData.Measurement("service_metric")
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cart");
                 Console.WriteLine("hash get async latency "+latency.ToString());
-                cnt += 1;
-                // Write2Influx();
+                Write2Influx(point);
                 
                 Hipstershop.Cart cart;
                 if (value.IsNull)
@@ -174,13 +168,10 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 latency = (DateTime.Now.Ticks - start)/10;
             
-                var point2 = PointData.Measurement("hash set async")
-                    .Field("latency", latency)
-                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
-                points.Add(point2);
+                var point2 = PointData.Measurement("service_metric")
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cart");
                 Console.WriteLine("hash set async latency "+latency.ToString());
-                cnt += 1;
-                // Write2Influx();
+                Write2Influx(point2);
             }
             catch (Exception ex)
             {
@@ -203,13 +194,10 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
 
-                var point = PointData.Measurement("hash set async")
-                    .Field("latency", latency)
-                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
-                points.Add(point);
+                var point = PointData.Measurement("service_metric")
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cart");
                 Console.WriteLine("hash set async latency "+latency.ToString());
-                cnt += 1;
-                // Write2Influx();
+                Write2Influx(point);
                 
             }
             catch (Exception ex)
@@ -233,13 +221,10 @@ namespace cartservice.cartstore
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
-                var point = PointData.Measurement("hash get async")
-                    .Field("latency", latency)
-                    .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
-                points.Add(point);
+                var point = PointData.Measurement("service_metric")
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cart");
                 Console.WriteLine("hash get async latency "+latency.ToString());
-                cnt += 1;
-                // Write2Influx();
+                Write2Influx(point);
 
                 if (!value.IsNull)
                 {

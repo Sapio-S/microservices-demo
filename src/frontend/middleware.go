@@ -21,6 +21,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+
+	"github.com/influxdata/influxdb-client-go/v2"
 )
 
 type ctxKeyLog struct{}
@@ -53,6 +55,10 @@ func (r *responseRecorder) WriteHeader(statusCode int) {
 	r.w.WriteHeader(statusCode)
 }
 
+const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const bucket = "trace"
+const org = "1205402283@qq.com"
+
 func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestID, _ := uuid.NewRandom()
@@ -74,6 +80,15 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"http.resp.took_us": int64(time.Since(start).Microseconds()), //test?
 			"http.resp.status":  rr.status,
 			"http.resp.bytes":   rr.b}).Debugf("request complete")
+
+		client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+			influxdb2.DefaultOptions().
+			SetBatchSize(100).
+			SetFlushInterval(1000))
+		writeAPI := client.WriteAPI(org, bucket)
+		p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").SetTime(time.Now())
+		// write point asynchronously
+		writeAPI.WritePoint(p)
 	}()
 
 	ctx = context.WithValue(ctx, ctxKeyLog{}, log)

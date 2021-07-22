@@ -137,6 +137,10 @@ func main() {
 	select {}
 }
 
+const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const bucket = "trace"
+const org = "1205402283@qq.com"
+
 // Authorization unary interceptor function to handle authorize per RPC call
 func serverInterceptor(ctx context.Context,
 	req interface{},
@@ -151,18 +155,16 @@ func serverInterceptor(ctx context.Context,
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
 	log.Info("latency", duration)
+	log.Info(ctx)
 
-	p := influxdb2.NewPoint(
-		"product catalog service", // ??
-        map[string]string{"_field": "latency"},
-        map[string]interface{}{"latency": duration},
-        start)
-	// ？？？？
-	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-	writeAPI.WritePoint(ctx, p)
-    // Ensures background processes finishes
-    client.Close()
+	client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI := client.WriteAPI(org, bucket)
+	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "product catalog").AddTag("method", info.FullMethod).SetTime(time.Now())
+	// write point asynchronously
+	writeAPI.WritePoint(p)
 	return h, err
 }
 

@@ -14,43 +14,6 @@
  * limitations under the License.
  */
 
-// if(process.env.DISABLE_PROFILER) {
-//   console.log("Profiler disabled.")
-// }
-// else {
-//   console.log("Profiler enabled.")
-//   require('@google-cloud/profiler').start({
-//     serviceContext: {
-//       service: 'currencyservice',
-//       version: '1.0.0'
-//     }
-//   });
-// }
-
-
-// if(process.env.DISABLE_TRACING) {
-//   console.log("Tracing disabled.")
-// }
-// else {
-//   console.log("Tracing enabled.")
-//   require('@google-cloud/trace-agent').start();
-// }
-
-// if(process.env.DISABLE_DEBUGGER) {
-//   console.log("Debugger disabled.")
-// }
-// else {
-//   console.log("Debugger enabled.")
-//   require('@google-cloud/debug-agent').start({
-//     serviceContext: {
-//       service: 'currencyservice',
-//       version: 'VERSION'
-//     }
-//   });
-// }
-// import ExperimentalServer from 'ges';
-
-// const ExperimentalServer = require('ges');
 const path = require('path');
 const grpc = require('grpc');
 const interceptors = require('@echo-health/grpc-interceptors');
@@ -73,6 +36,7 @@ const logger = pino({
   changeLevelName: 'severity',
   useLevelLabels: true
 });
+
 
 /**
  * Helper function that loads a protobuf file.
@@ -165,77 +129,72 @@ function check (call, callback) {
   callback(null, { status: 'SERVING' });
 }
 
-// function preHook(context, request) {
-//   console.log('in prehook');
-//   context.time = new Date().getTime();
-// } 
-
-// function postHook(err, context, request) {
-//   console.log('in postHook');
-//   let end = new Date().getTime();
-//   console.log(context);
-//   console.log(end - context.time); // 时间戳格式
-// } 
-
-/**
- * Starts an RPC server that receives requests for the
- * CurrencyConverter service at the sample server port
- */
-
+function getNanoSecTime() {
+  var hrTime = process.hrtime();
+  return hrTime[0] * 1000000000 + hrTime[1];
+}
 
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
 
-  // method 1
-  // const server = new grpc.Server(null, preHook, postHook);
-
-
-  // method 2
-  // const server = new ExperimentalServer();
-
-  // server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
-  // server.addService(healthProto.Health.service, {check});
-  
-  // // interceptor
-  // server.use(async (context, next) => {
-  //   // preprocess
-  //   const start = Date.now();
-  //   try {
-  //     await next();
-  //   } finally {
-  //     // postprocess
-  //     const costtime = Date.now() - start;
-  //     console.log('costtime is', costtime);
-  //   }
-  // });
-
-  // method 3
   const server = interceptors.serverProxy(new grpc.Server());
 
-  const url = 'http://localhost:8086/';
-  const bucket = "trace";
-  const token = "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==";
-  const org = "MSRA";
-  const writeApi = new InfluxDB({url, token}).getWriteApi(org, bucket, 'ms');
-  // setup default tags for all writes through this API
-  // writeApi.useDefaultTags({location: hostname()});
-
+  const token = 'EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==';
+  const org = '1205402283@qq.com';
+  const bucket = 'trace';
+  const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
+  // explains all write options
+  const writeOptions = {
+    /* the maximum points/line to send in a single batch to InfluxDB server */
+    batchSize: 100, 
+    /* default tags to add to every point */
+    // defaultTags: {location: hostname},
+    /* maximum time in millis to keep points in an unflushed batch, 0 means don't periodically flush */
+    flushInterval: 1000,
+    /* maximum size of the retry buffer - it contains items that could not be sent for the first time */
+    maxBufferLines: 30000,
+    /* the count of retries, the delays between retries follow an exponential backoff strategy if there is no Retry-After HTTP header */
+    maxRetries: 3,
+    /* maximum delay between retries in milliseconds */
+    maxRetryDelay: 15000,
+    /* minimum delay between retries in milliseconds */
+    minRetryDelay: 1000, // minimum delay between retries
+    /* a random value of up to retryJitter is added when scheduling next retry */
+    retryJitter: 1000,
+    // ... or you can customize what to do on write failures when using a writeFailed fn, see the API docs for details
+    // writeFailed: function(error, lines, failedAttempts){/** return promise or void */},
+  }
+  const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 
   server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
   server.addService(healthProto.Health.service, {check});
+
   const myMiddlewareFunc = async function (ctx, next) {
-
     // do stuff before call
-    const start = process.hrtime.bigint(); // gives precision in ns
+    const start = getNanoSecTime(); // gives precision in ns
 
-    await next();
-    
+    try{
+      await next();
+    }
+    catch(e){
+      console.log("error!");
+    }
     // do stuff after call
-    const costtime = (process.hrtime.bigint() - start)/1000;
-    // console.log('costtime is', costtime);
-    const point1 = new Point('currency service').intField("latency", costtime)
-    // writeApi.writePoint(point1)
-    console.log(`latency ${costtime}`)
+    const costtime = (getNanoSecTime() - start)/1000;
+    if(ctx.call.request.hasOwnProperty("service")){ // probe check
+
+    }
+    else if(ctx.call.request.hasOwnProperty("from")){ // conversion
+      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currency").tag("method", "conversion").timestamp(new Date())
+      writeApi.writePoint(point)
+      // console.log(`latency ${costtime}`)
+    }
+    else{ // getSupportedCurrencies
+      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currency").tag("method", "get currency").timestamp(new Date())
+      writeApi.writePoint(point)
+      // console.log(`latency ${costtime}`)
+    }
+    
   }
 
   server.use(myMiddlewareFunc);

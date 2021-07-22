@@ -32,12 +32,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/metadata"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/genproto"
 	money "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/money"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/influxdata/influxdb-client-go/v2"
+	// "github.com/influxdata/influxdb-client-go/v2/api/write"
 )
 
 const (
@@ -59,6 +61,7 @@ func init() {
 		TimestampFormat: time.RFC3339Nano,
 	}
 	log.Out = os.Stdout
+
 }
 
 type checkoutService struct {
@@ -70,6 +73,9 @@ type checkoutService struct {
 	paymentSvcAddr        string
 }
 
+const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const bucket = "trace"
+const org = "1205402283@qq.com"
 // Authorization unary interceptor function to handle authorize per RPC call
 func serverInterceptor(ctx context.Context,
 	req interface{},
@@ -83,19 +89,22 @@ func serverInterceptor(ctx context.Context,
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
+	meta, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		log.Info(meta)
+	}
 	log.Info("latency", duration)
+	log.Info(ctx)
 
-	p := influxdb2.NewPoint(
-		"checkout service", // ??
-        map[string]string{"_field": "latency"},
-        map[string]interface{}{"latency": duration},
-        start)
-	// ？？？？
-	client := influxdb2.NewClient("http://localhost:8086", "nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==")
-	writeAPI := client.WriteAPIBlocking("MSRA", "trace")
-	writeAPI.WritePoint(ctx, p)
-    // Ensures background processes finishes
-    client.Close()
+	client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI := client.WriteAPI(org, bucket)
+	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkout").AddTag("method", info.FullMethod).SetTime(time.Now())
+	// write point asynchronously
+	writeAPI.WritePoint(p)
+
 	return h, err
 }
 
@@ -105,19 +114,6 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 
 
 func main() {
-	// if os.Getenv("DISABLE_TRACING") == "" {
-	// 	log.Info("Tracing enabled.")
-	// 	go initTracing()
-	// } else {
-	// 	log.Info("Tracing disabled.")
-	// }
-
-	// if os.Getenv("DISABLE_PROFILER") == "" {
-	// 	log.Info("Profiling enabled.")
-	// 	go initProfiling("checkoutservice", "1.0.0")
-	// } else {
-	// 	log.Info("Profiling disabled.")
-	// }
 
 	port := listenPort
 	if os.Getenv("PORT") != "" {
@@ -151,86 +147,6 @@ func main() {
 	log.Fatal(err)
 }
 
-// func initJaegerTracing() {
-// 	svcAddr := os.Getenv("JAEGER_SERVICE_ADDR")
-// 	if svcAddr == "" {
-// 		log.Info("jaeger initialization disabled.")
-// 		return
-// 	}
-
-// 	// Register the Jaeger exporter to be able to retrieve
-// 	// the collected spans.
-// 	exporter, err := jaeger.NewExporter(jaeger.Options{
-// 		Endpoint: fmt.Sprintf("http://%s", svcAddr),
-// 		Process: jaeger.Process{
-// 			ServiceName: "checkoutservice",
-// 		},
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	trace.RegisterExporter(exporter)
-// 	log.Info("jaeger initialization completed.")
-// }
-
-// func initStats(exporter *stackdriver.Exporter) {
-// 	view.SetReportingPeriod(60 * time.Second)
-// 	view.RegisterExporter(exporter)
-// 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
-// 		log.Warn("Error registering default server views")
-// 	} else {
-// 		log.Info("Registered default server views")
-// 	}
-// }
-
-// func initStackdriverTracing() {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		exporter, err := stackdriver.NewExporter(stackdriver.Options{})
-// 		if err != nil {
-// 			log.Infof("failed to initialize stackdriver exporter: %+v", err)
-// 		} else {
-// 			trace.RegisterExporter(exporter)
-// 			log.Info("registered Stackdriver tracing")
-
-// 			// Register the views to collect server stats.
-// 			initStats(exporter)
-// 			return
-// 		}
-// 		d := time.Second * 10 * time.Duration(i)
-// 		log.Infof("sleeping %v to retry initializing Stackdriver exporter", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("could not initialize Stackdriver exporter after retrying, giving up")
-// }
-
-// func initTracing() {
-// 	initJaegerTracing()
-// 	initStackdriverTracing()
-// }
-
-// func initProfiling(service, version string) {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		if err := profiler.Start(profiler.Config{
-// 			Service:        service,
-// 			ServiceVersion: version,
-// 			// ProjectID must be set if not running on GCP.
-// 			// ProjectID: "my-project",
-// 		}); err != nil {
-// 			log.Warnf("failed to start profiler: %+v", err)
-// 		} else {
-// 			log.Info("started Stackdriver profiler")
-// 			return
-// 		}
-// 		d := time.Second * 10 * time.Duration(i)
-// 		log.Infof("sleeping %v to retry initializing Stackdriver profiler", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("could not initialize Stackdriver profiler after retrying, giving up")
-// }
 
 func mustMapEnv(target *string, envKey string) {
 	v := os.Getenv(envKey)
