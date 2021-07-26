@@ -33,28 +33,19 @@ const token = 'EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6
 const org = '1205402283@qq.com';
 const bucket = 'trace';
 const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
-// explains all write options
 const writeOptions = {
-  /* the maximum points/line to send in a single batch to InfluxDB server */
   batchSize: 100, 
-  /* default tags to add to every point */
-  // defaultTags: {location: hostname},
-  /* maximum time in millis to keep points in an unflushed batch, 0 means don't periodically flush */
   flushInterval: 1000,
-  /* maximum size of the retry buffer - it contains items that could not be sent for the first time */
-  maxBufferLines: 30000,
-  /* the count of retries, the delays between retries follow an exponential backoff strategy if there is no Retry-After HTTP header */
-  maxRetries: 3,
-  /* maximum delay between retries in milliseconds */
-  maxRetryDelay: 15000,
-  /* minimum delay between retries in milliseconds */
-  minRetryDelay: 1000, // minimum delay between retries
-  /* a random value of up to retryJitter is added when scheduling next retry */
-  retryJitter: 1000,
-  // ... or you can customize what to do on write failures when using a writeFailed fn, see the API docs for details
-  // writeFailed: function(error, lines, failedAttempts){/** return promise or void */},
 }
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
+
+function handleExit(signal) {
+  writeApi.close();
+  process.exit(0);
+}
+process.on('SIGINT', handleExit);
+process.on('SIGTERM', handleExit);
+
 function getNanoSecTime() {
   var hrTime = process.hrtime();
   return hrTime[0] * 1000000000 + hrTime[1];

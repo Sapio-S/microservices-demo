@@ -27,31 +27,17 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	// "common"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-
-	// "cloud.google.com/go/profiler"
-	// "contrib.go.opencensus.io/exporter/jaeger"
-	// "contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/sirupsen/logrus"
-	//  "go.opencensus.io/exporter/jaeger"
-	// "go.opencensus.io/plugin/ocgrpc"
-	// "go.opencensus.io/stats/view"
-	// "go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	// "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	// "github.com/opentracing/opentracing-go"
-
-	// influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	// "github.com/influxdata/influxdb-client-go/v2/api"
-
 	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 var (
@@ -64,21 +50,14 @@ var (
 
 	reloadCatalog bool
 
-	// writeAPI 	 api.WriteAPI
+	writeAPI 	 api.WriteAPI
+	client influxdb2.Client
 )
 
-// type Server struct {
-// 	users map[string]string
-
-// 	Tracer       opentracing.Tracer
-// 	// Registry     *registry.Client
-// 	Port         int
-// 	IpAddr       string
-// 	// MongoSession *mgo.Session
-// 	Monitor      *common.MonitoringHelper
-// }
-
-const name = "product catalog service"
+const name = "productcatalogservice"
+const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const bucket = "trace"
+const org = "1205402283@qq.com"
 
 func init() {
 	log = logrus.New()
@@ -98,6 +77,20 @@ func init() {
 	}
 }
 
+func sigHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+
+	for signal := range c {
+		switch signal {
+        case syscall.SIGINT, syscall.SIGTERM:
+			writeAPI.Flush()
+			client.Close()
+			os.Exit(0)
+        }
+	}
+}
+
 func main() {
 	flag.Parse()
 
@@ -112,6 +105,14 @@ func main() {
 	} else {
 		extraLatency = time.Duration(0)
 	}
+
+	
+	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI = client.WriteAPI(org, bucket)
+	go sigHandler()
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGUSR1, syscall.SIGUSR2)
@@ -137,9 +138,6 @@ func main() {
 	select {}
 }
 
-const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
-const bucket = "trace"
-const org = "1205402283@qq.com"
 
 // Authorization unary interceptor function to handle authorize per RPC call
 func serverInterceptor(ctx context.Context,
@@ -150,18 +148,10 @@ func serverInterceptor(ctx context.Context,
 	start := time.Now()
 	// Calls the handler
 	h, err := handler(ctx, req)
-	log.Info(req)
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	log.Info("latency", duration)
-	log.Info(ctx)
 
-	client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
-		influxdb2.DefaultOptions().
-		SetBatchSize(100).
-		SetFlushInterval(1000))
-	writeAPI := client.WriteAPI(org, bucket)
 	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "productcatalogservice").AddTag("method", info.FullMethod).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)

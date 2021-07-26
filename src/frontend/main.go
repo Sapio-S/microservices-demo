@@ -19,20 +19,20 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+    "syscall"
 	"time"
 
-	// "cloud.google.com/go/profiler"
-	// "contrib.go.opencensus.io/exporter/jaeger"
-	// "contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/plugin/ochttp/propagation/b3"
-	// "go.opencensus.io/stats/view"
-	// "go.opencensus.io/trace"
 	"google.golang.org/grpc"
+
+	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 const (
@@ -45,7 +45,13 @@ const (
 	cookieCurrency  = cookiePrefix + "currency"
 )
 
+const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const bucket = "trace"
+const org = "1205402283@qq.com"
+
 var (
+	client influxdb2.Client
+	writeAPI api.WriteAPI
 	whitelistedCurrencies = map[string]bool{
 		"USD": true,
 		"EUR": true,
@@ -80,6 +86,20 @@ type frontendServer struct {
 	adSvcConn *grpc.ClientConn
 }
 
+func sigHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+
+	for signal := range c {
+		switch signal {
+        case syscall.SIGINT, syscall.SIGTERM:
+			writeAPI.Flush()
+			client.Close()
+			os.Exit(0)
+        }
+	}
+}
+
 func main() {
 	ctx := context.Background()
 	log := logrus.New()
@@ -93,20 +113,6 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	}
 	log.Out = os.Stdout
-
-	// if os.Getenv("DISABLE_TRACING") == "" {
-	// 	log.Info("Tracing enabled.")
-	// 	go initTracing(log)
-	// } else {
-	// 	log.Info("Tracing disabled.")
-	// }
-
-	// if os.Getenv("DISABLE_PROFILER") == "" {
-	// 	log.Info("Profiling enabled.")
-	// 	go initProfiling(log, "frontend", "1.0.0")
-	// } else {
-	// 	log.Info("Profiling disabled.")
-	// }
 
 	srvPort := port
 	if os.Getenv("PORT") != "" {
@@ -143,6 +149,14 @@ func main() {
 	r.HandleFunc("/robots.txt", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "User-agent: *\nDisallow: /") })
 	r.HandleFunc("/_healthz", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "ok") })
 
+	
+	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI = client.WriteAPI(org, bucket)
+	go sigHandler()
+
 	var handler http.Handler = r
 	handler = &logHandler{log: log, next: handler} // add logging
 	handler = ensureSessionID(handler)             // add session ID
@@ -153,105 +167,6 @@ func main() {
 	log.Infof("starting server on " + addr + ":" + srvPort)
 	log.Fatal(http.ListenAndServe(addr+":"+srvPort, handler))
 }
-
-// func initJaegerTracing(log logrus.FieldLogger) {
-
-// 	svcAddr := os.Getenv("JAEGER_SERVICE_ADDR")
-// 	if svcAddr == "" {
-// 		log.Info("jaeger initialization disabled.")
-// 		return
-// 	}
-
-// 	// Register the Jaeger exporter to be able to retrieve
-// 	// the collected spans.
-// 	exporter, err := jaeger.NewExporter(jaeger.Options{
-// 		Endpoint: fmt.Sprintf("http://%s", svcAddr),
-// 		Process: jaeger.Process{
-// 			ServiceName: "frontend",
-// 		},
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	trace.RegisterExporter(exporter)
-// 	log.Info("jaeger initialization completed.")
-// }
-
-// func initStats(log logrus.FieldLogger, exporter *stackdriver.Exporter) {
-// 	view.SetReportingPeriod(60 * time.Second)
-// 	view.RegisterExporter(exporter)
-// 	if err := view.Register(ochttp.DefaultServerViews...); err != nil {
-// 		log.Warn("Error registering http default server views")
-// 	} else {
-// 		log.Info("Registered http default server views")
-// 	}
-// 	if err := view.Register(ocgrpc.DefaultClientViews...); err != nil {
-// 		log.Warn("Error registering grpc default client views")
-// 	} else {
-// 		log.Info("Registered grpc default client views")
-// 	}
-// }
-
-// func initStackdriverTracing(log logrus.FieldLogger) {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		log = log.WithField("retry", i)
-// 		exporter, err := stackdriver.NewExporter(stackdriver.Options{})
-// 		if err != nil {
-// 			// log.Warnf is used since there are multiple backends (stackdriver & jaeger)
-// 			// to store the traces. In production setup most likely you would use only one backend.
-// 			// In that case you should use log.Fatalf.
-// 			log.Warnf("failed to initialize Stackdriver exporter: %+v", err)
-// 		} else {
-// 			trace.RegisterExporter(exporter)
-// 			log.Info("registered Stackdriver tracing")
-
-// 			// Register the views to collect server stats.
-// 			initStats(log, exporter)
-// 			return
-// 		}
-// 		d := time.Second * 20 * time.Duration(i)
-// 		log.Debugf("sleeping %v to retry initializing Stackdriver exporter", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("could not initialize Stackdriver exporter after retrying, giving up")
-// }
-
-// func initTracing(log logrus.FieldLogger) {
-// 	// This is a demo app with low QPS. trace.AlwaysSample() is used here
-// 	// to make sure traces are available for observation and analysis.
-// 	// In a production environment or high QPS setup please use
-// 	// trace.ProbabilitySampler set at the desired probability.
-// 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-
-// 	initJaegerTracing(log)
-// 	initStackdriverTracing(log)
-
-// }
-
-// func initProfiling(log logrus.FieldLogger, service, version string) {
-// 	// TODO(ahmetb) this method is duplicated in other microservices using Go
-// 	// since they are not sharing packages.
-// 	for i := 1; i <= 3; i++ {
-// 		log = log.WithField("retry", i)
-// 		if err := profiler.Start(profiler.Config{
-// 			Service:        service,
-// 			ServiceVersion: version,
-// 			// ProjectID must be set if not running on GCP.
-// 			// ProjectID: "my-project",
-// 		}); err != nil {
-// 			log.Warnf("warn: failed to start profiler: %+v", err)
-// 		} else {
-// 			log.Info("started Stackdriver profiler")
-// 			return
-// 		}
-// 		d := time.Second * 10 * time.Duration(i)
-// 		log.Debugf("sleeping %v to retry initializing Stackdriver profiler", d)
-// 		time.Sleep(d)
-// 	}
-// 	log.Warn("warning: could not initialize Stackdriver profiler after retrying, giving up")
-// }
 
 func mustMapEnv(target *string, envKey string) {
 	v := os.Getenv(envKey)

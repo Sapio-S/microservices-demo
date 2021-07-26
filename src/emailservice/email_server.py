@@ -16,6 +16,7 @@
 
 from concurrent import futures
 import argparse
+import signal
 import os
 import sys
 import time
@@ -119,9 +120,6 @@ class HealthCheck():
 
 def start(dummy_mode):
   MAX_WORKERS = int(os.environ.get("MAX_WORKERS"))
-  
-  # influxInterceptor = InfluxInterceptor("email server")
-  # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
   interceptors = [InfluxInterceptor("emailservice")]
   server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
@@ -148,9 +146,7 @@ def start(dummy_mode):
   except KeyboardInterrupt:
     server.stop(0)
 
-
 if __name__ == '__main__':
   logger.info('starting the email service in dummy mode.')
   logger.info("Tracing enabled.")
-
   start(dummy_mode = True)

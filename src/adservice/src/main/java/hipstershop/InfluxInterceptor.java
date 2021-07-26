@@ -22,8 +22,8 @@ import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
-
-
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 public class InfluxInterceptor implements ServerInterceptor {
 
   private static final Logger logger = Logger.getLogger(InfluxInterceptor.class.getName());
@@ -43,6 +43,9 @@ public class InfluxInterceptor implements ServerInterceptor {
       .jitterInterval(0)
       .retryInterval(5000)
       .build());
+    terminateHandler handler = new terminateHandler(this.writeApi, this.influxDBClient);
+    Signal.handle(new Signal("INT"), handler);
+    Signal.handle(new Signal("TERM"), handler);
   }
 
   @Override

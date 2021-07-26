@@ -18,15 +18,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+    "syscall"
 	"time"
 
-	// "cloud.google.com/go/profiler"
-	// "contrib.go.opencensus.io/exporter/jaeger"
-	// "contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/sirupsen/logrus"
-	// "go.opencensus.io/plugin/ocgrpc"
-	// "go.opencensus.io/stats/view"
-	// "go.opencensus.io/trace"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -37,13 +33,18 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 const (
 	defaultPort = "50051"
 )
 
-var log *logrus.Logger
+var (
+	log *logrus.Logger
+	client influxdb2.Client
+	writeAPI api.WriteAPI
+)
 
 func init() {
 	log = logrus.New()
@@ -72,17 +73,10 @@ func serverInterceptor(ctx context.Context,
 	start := time.Now()
 	// Calls the handler
 	h, err := handler(ctx, req)
-	log.Info(req)
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	log.Info(ctx)
 
-	client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
-		influxdb2.DefaultOptions().
-		SetBatchSize(100).
-		SetFlushInterval(1000))
-	writeAPI := client.WriteAPI(org, bucket)
 	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "shippingservice").AddTag("method", info.FullMethod).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)
@@ -92,6 +86,21 @@ func serverInterceptor(ctx context.Context,
 func withServerUnaryInterceptor() grpc.ServerOption {
 	return grpc.UnaryInterceptor(serverInterceptor)
 }
+
+func sigHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+
+	for signal := range c {
+		switch signal {
+        case syscall.SIGINT, syscall.SIGTERM:
+			writeAPI.Flush()
+			client.Close()
+			os.Exit(0)
+        }
+	}
+}
+
 
 func main() {
 
@@ -105,6 +114,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI = client.WriteAPI(org, bucket)
+	go sigHandler()
 
 	var srv *grpc.Server
 

@@ -19,27 +19,24 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+    "syscall"
 	"time"
 
-	// "cloud.google.com/go/profiler"
-	// "contrib.go.opencensus.io/exporter/jaeger"
-	// "contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
-	// "go.opencensus.io/stats/view"
-	// "go.opencensus.io/trace"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/metadata"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/genproto"
 	money "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/money"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/influxdata/influxdb-client-go/v2"
-	// "github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 const (
@@ -47,7 +44,11 @@ const (
 	usdCurrency = "USD"
 )
 
-var log *logrus.Logger
+var (
+	log *logrus.Logger
+	client influxdb2.Client
+	writeAPI api.WriteAPI
+)
 
 func init() {
 	log = logrus.New()
@@ -85,22 +86,11 @@ func serverInterceptor(ctx context.Context,
 	start := time.Now()
 	// Calls the handler
 	h, err := handler(ctx, req)
-	log.Info(req)
+	// log.Info(req)
 
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
-	meta, ok := metadata.FromIncomingContext(ctx)
-	if ok {
-		log.Info(meta)
-	}
-	log.Info("latency", duration)
-	log.Info(ctx)
 
-	client := influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
-		influxdb2.DefaultOptions().
-		SetBatchSize(100).
-		SetFlushInterval(1000))
-	writeAPI := client.WriteAPI(org, bucket)
 	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)
@@ -112,6 +102,19 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 	return grpc.UnaryInterceptor(serverInterceptor)
 }
 
+func sigHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+
+	for signal := range c {
+		switch signal {
+        case syscall.SIGINT, syscall.SIGTERM:
+			writeAPI.Flush()
+			client.Close()
+			os.Exit(0)
+        }
+	}
+}
 
 func main() {
 
@@ -134,6 +137,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+		influxdb2.DefaultOptions().
+		SetBatchSize(100).
+		SetFlushInterval(1000))
+	writeAPI = client.WriteAPI(org, bucket)
+	go sigHandler()
 
 	var srv *grpc.Server
 	srv = grpc.NewServer(

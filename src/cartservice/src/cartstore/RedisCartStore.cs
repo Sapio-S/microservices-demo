@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using StackExchange.Redis;
@@ -73,7 +74,20 @@ namespace cartservice.cartstore
         {
             EnsureRedisConnected();
             initInflux();
+            AppDomain appd = AppDomain.CurrentDomain;
+            appd.ProcessExit += (s, e) => {
+                close_program();
+            };
+            Console.CancelKeyPress += (sender, e) => {
+                close_program();
+            };
             return Task.CompletedTask;
+        }
+
+        public void close_program(){
+            writeApi0.Dispose();
+            influxclient.Dispose();
+            System.Console.WriteLine("close program.");
         }
 
         private void EnsureRedisConnected()
