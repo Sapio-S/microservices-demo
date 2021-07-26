@@ -45,7 +45,7 @@ class InfluxInterceptor(ServerInterceptor):
         p = Point("service_metric") \
             .tag("service", self.service) \
             .field("latency", latency) \
-            .tag("method", method_name) \ 
+            .tag("method", method_name) \
             .time(datetime.utcnow(), WritePrecision.NS)
         self.write_api.write(bucket="trace", record=p)
         return res

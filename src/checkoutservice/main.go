@@ -101,7 +101,7 @@ func serverInterceptor(ctx context.Context,
 		SetBatchSize(100).
 		SetFlushInterval(1000))
 	writeAPI := client.WriteAPI(org, bucket)
-	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkout").AddTag("method", info.FullMethod).SetTime(time.Now())
+	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)
 

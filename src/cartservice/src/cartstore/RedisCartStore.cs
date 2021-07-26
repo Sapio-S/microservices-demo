@@ -138,7 +138,7 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "get").Tag("service", "cart");
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -169,7 +169,7 @@ namespace cartservice.cartstore
                 latency = (DateTime.Now.Ticks - start)/10;
             
                 var point2 = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "set").Tag("service", "cart");
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point2);
             }
@@ -195,7 +195,7 @@ namespace cartservice.cartstore
                 long  latency = (DateTime.Now.Ticks - start)/10;
 
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "set").Tag("service", "cart");
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -222,7 +222,7 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "get").Tag("service", "cart");
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
 

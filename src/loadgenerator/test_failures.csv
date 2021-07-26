@@ -1,0 +1,15 @@
+Method,Name,Error,Occurrences
+GET,/cart,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/cart,10
+GET,/product/9SIQT8TOJO,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/9SIQT8TOJO,5
+POST,/cart,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/cart,11
+POST,/cart/checkout,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/cart/checkout,4
+GET,/product/L9ECAV7KIM,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/L9ECAV7KIM,8
+GET,/product/66VCHSJNUP,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/66VCHSJNUP,6
+GET,/,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/,1
+GET,/product/0PUK6V6EV0,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/0PUK6V6EV0,3
+GET,/product/LS4PSXUNUM,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/LS4PSXUNUM,5
+GET,/product/OLJCESPC7Z,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/OLJCESPC7Z,5
+GET,/product/1YMWWN1N4O,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/1YMWWN1N4O,10
+GET,/product/2ZYFJ3GM2N,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/2ZYFJ3GM2N,6
+GET,/product/6E92ZMYYFZ,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/product/6E92ZMYYFZ,2
+POST,/setCurrency,500 Server Error: Internal Server Error for url: http://192.168.49.2:31606/,7

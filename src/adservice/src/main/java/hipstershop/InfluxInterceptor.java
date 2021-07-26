@@ -58,7 +58,7 @@ public class InfluxInterceptor implements ServerInterceptor {
     ServerCall.Listener<ReqT> res = next.startCall(call, requestHeaders);
 
     long end = (System.nanoTime() - start)/1000;  // change into us
-    Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "ad").addField("latency", end).time(Instant.now(), WritePrecision.NS);;
+    Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "adservice").addField("latency", end).time(Instant.now(), WritePrecision.NS);;
     this.writeApi.writePoint(point);
     return res;
   }

@@ -33,10 +33,11 @@ from interceptor import InfluxInterceptor
 
 from logger import getJSONLogger
 logger = getJSONLogger('recommendationservice-server')
-
+MAX_RESPONSE = 5
+MAX_WORKERS = 5
 class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
     def ListRecommendations(self, request, context):
-        max_responses = 5
+        max_responses = MAX_RESPONSE
         # fetch list of products from product catalog stub
         cat_response = product_catalog_stub.ListProducts(demo_pb2.Empty())
         product_ids = [x.id for x in cat_response.products]
@@ -67,6 +68,10 @@ if __name__ == "__main__":
     logger.info("initializing recommendationservice")
 
     port = os.environ.get('PORT', "8080")
+    MAX_RESPONSE = int(os.environ.get('MAX_RESPONSE'))
+    MAX_WORKERS = int(os.environ.get('MAX_WORKERS'))
+    print(MAX_WORKERS, MAX_RESPONSE)
+    
     catalog_addr = os.environ.get('PRODUCT_CATALOG_SERVICE_ADDR', '')
     if catalog_addr == "":
         raise Exception('PRODUCT_CATALOG_SERVICE_ADDR environment variable not set')
@@ -77,9 +82,9 @@ if __name__ == "__main__":
     # create gRPC server
     # influxInterceptor = InfluxInterceptor("recommendation server")
     # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
-    interceptors = [InfluxInterceptor("recommendation server")]
+    interceptors = [InfluxInterceptor("recommendationservice")]
     server = grpc.server(
-        futures.ThreadPoolExecutor(max_workers=10),
+        futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
         interceptors=interceptors
     )
 

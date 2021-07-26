@@ -9,6 +9,10 @@ pkg/
 .idea
 .skaffold-*.yaml
 .kubernetes-manifests-*/
+
 .project
 .eclipse.buildship.core.prefs
 release/wi-kubernetes-manifests.yaml
+/res
+/generated-manifests
+/locust_table

@@ -185,12 +185,12 @@ function main () {
 
     }
     else if(ctx.call.request.hasOwnProperty("from")){ // conversion
-      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currency").tag("method", "conversion").timestamp(new Date())
+      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currencyservice").tag("method", "conversion").timestamp(new Date())
       writeApi.writePoint(point)
       // console.log(`latency ${costtime}`)
     }
     else{ // getSupportedCurrencies
-      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currency").tag("method", "get currency").timestamp(new Date())
+      const point = new Point('service_metric').floatField("latency", costtime).tag("service", "currencyservice").tag("method", "get currency").timestamp(new Date())
       writeApi.writePoint(point)
       // console.log(`latency ${costtime}`)
     }

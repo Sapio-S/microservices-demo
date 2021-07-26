@@ -54,6 +54,9 @@ public final class AdService {
   private static final AdService service = new AdService();
 
   private void start() throws IOException {
+    // 从环境变量中获取该数值
+    MAX_ADS_TO_SERVE = Integer.parseInt(System.getenv().getOrDefault("MAX_ADS_TO_SERVE", "2"));
+
     int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9555"));
     healthMgr = new HealthStatusManager();
 
@@ -64,6 +67,7 @@ public final class AdService {
             .build()
             .start();
     logger.info("Ad Service started, listening on " + port);
+    logger.info("MAX_ADS_TO_SERVE is "+Integer.toString(MAX_ADS_TO_SERVE));
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(

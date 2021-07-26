@@ -89,7 +89,7 @@ class HipsterShopServer {
   
       }
       else{ // charge
-        const point = new Point('service_metric').floatField("latency", costtime).tag("service", "payment").tag("method", "charge").timestamp(new Date())
+        const point = new Point('service_metric').floatField("latency", costtime).tag("service", "paymentservice").tag("method", "charge").timestamp(new Date())
         writeApi.writePoint(point)
         // console.log(`latency ${costtime}`)
       }

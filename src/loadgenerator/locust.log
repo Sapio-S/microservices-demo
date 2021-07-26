@@ -1,0 +1,59 @@
+[2021-07-20 09:58:08,368] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-20 09:58:08,369] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-20 09:58:08,369] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-20 09:58:08,370] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-20 09:58:14,731] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-20 09:58:14,733] autosys-17/INFO/locust.main: Shutting down (exit code 0), bye.
+[2021-07-20 09:58:14,734] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-20 09:58:14,735] autosys-17/INFO/locust.runners: Stopping 7 users
+[2021-07-20 09:58:14,736] autosys-17/INFO/locust.runners: 7 Users have been stopped, 0 still running
+[2021-07-20 10:09:09,977] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-20 10:09:09,978] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-20 10:09:09,979] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-20 10:09:09,979] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-20 10:09:18,990] autosys-17/INFO/locust.runners: All users spawned: WebsiteUser: 10 (10 total running)
+[2021-07-20 10:09:24,192] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-20 10:09:24,192] autosys-17/INFO/locust.main: Shutting down (exit code 0), bye.
+[2021-07-20 10:09:24,192] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-20 10:09:24,193] autosys-17/INFO/locust.runners: Stopping 10 users
+[2021-07-20 10:09:24,194] autosys-17/INFO/locust.runners: 10 Users have been stopped, 0 still running
+[2021-07-20 10:18:19,734] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-20 10:18:19,735] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-20 10:18:19,736] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-20 10:18:19,737] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-20 10:18:28,748] autosys-17/INFO/locust.runners: All users spawned: WebsiteUser: 10 (10 total running)
+[2021-07-20 10:18:34,385] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-20 10:18:34,386] autosys-17/INFO/locust.main: Shutting down (exit code 0), bye.
+[2021-07-20 10:18:34,386] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-20 10:18:34,386] autosys-17/INFO/locust.runners: Stopping 10 users
+[2021-07-20 10:18:34,387] autosys-17/INFO/locust.runners: 10 Users have been stopped, 0 still running
+[2021-07-20 10:21:00,283] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-20 10:21:00,285] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-20 10:21:00,285] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-20 10:21:00,285] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-20 10:21:09,296] autosys-17/INFO/locust.runners: All users spawned: WebsiteUser: 10 (10 total running)
+[2021-07-20 10:21:16,896] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-20 10:21:16,897] autosys-17/INFO/locust.main: Shutting down (exit code 0), bye.
+[2021-07-20 10:21:16,897] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-20 10:21:16,897] autosys-17/INFO/locust.runners: Stopping 10 users
+[2021-07-20 10:21:16,898] autosys-17/INFO/locust.runners: 10 Users have been stopped, 0 still running
+[2021-07-20 10:31:09,610] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-20 10:31:09,611] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-20 10:31:09,611] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-20 10:31:09,612] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-20 10:31:18,622] autosys-17/INFO/locust.runners: All users spawned: WebsiteUser: 10 (10 total running)
+[2021-07-20 10:31:36,244] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-20 10:31:36,244] autosys-17/INFO/locust.main: Shutting down (exit code 0), bye.
+[2021-07-20 10:31:36,244] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-20 10:31:36,244] autosys-17/INFO/locust.runners: Stopping 10 users
+[2021-07-20 10:31:36,246] autosys-17/INFO/locust.runners: 10 Users have been stopped, 0 still running
+[2021-07-21 13:55:49,381] autosys-17/WARNING/locust.main: System open file limit '1024' is below minimum setting '10000'. It's not high enough for load testing, and the OS didn't allow locust to increase it by itself. See https://github.com/locustio/locust/wiki/Installation#increasing-maximum-number-of-open-files-limit for more info.
+[2021-07-21 13:55:49,383] autosys-17/INFO/locust.main: No run time limit set, use CTRL+C to interrupt.
+[2021-07-21 13:55:49,384] autosys-17/INFO/locust.main: Starting Locust 1.6.0
+[2021-07-21 13:55:49,385] autosys-17/INFO/locust.runners: Spawning 10 users at the rate 1 users/s (0 users already running)...
+[2021-07-21 13:55:58,396] autosys-17/INFO/locust.runners: All users spawned: WebsiteUser: 10 (10 total running)
+[2021-07-21 14:00:45,464] autosys-17/INFO/locust.main: Running teardowns...
+[2021-07-21 14:00:45,464] autosys-17/INFO/locust.main: Shutting down (exit code 1), bye.
+[2021-07-21 14:00:45,465] autosys-17/INFO/locust.main: Cleaning up runner...
+[2021-07-21 14:00:45,465] autosys-17/INFO/locust.runners: Stopping 10 users
+[2021-07-21 14:00:45,466] autosys-17/INFO/locust.runners: 10 Users have been stopped, 0 still running

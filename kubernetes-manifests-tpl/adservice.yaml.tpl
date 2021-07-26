@@ -11,17 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: adservice
-  labels:
-    role: server-config
-data:
-  # CPU_LIMIT: 300m
-  # MEMORY_LIMIT: 300Mi
-  MAX_ADS: "1"
----
+
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,6 +28,12 @@ spec:
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
+      securityContext:
+        sysctls:
+        - name: net.ipv4.tcp_rmem
+          value: "4096        {{para.IPV4_RMEM}}  6291456"
+        - name: net.ipv4.tcp_wmem
+          value: "4096        {{para.IPV4_WMEM}}   4194304"
       containers:
       - name: server
         image: adservice
@@ -46,27 +43,14 @@ spec:
         - name: PORT
           value: "9555"
         - name: MAX_ADS_TO_SERVE
-          valueFrom:
-            configMapKeyRef:
-              key: MAX_ADS
-              name: adservice
+          value: "{{para.MAX_ADS_TO_SERVE}}"
         resources:
           requests:
             cpu: 200m
             memory: 180Mi
           limits:
-            cpu: 300m
-            memory: 300Mi
-            # cpu:
-            #   valueFrom:
-            #     configMapKeyRef:
-            #       key: CPU_LIMIT
-            #       name: adservice
-            # memory:
-            #   valueFrom:
-            #     configMapKeyRef:
-            #       key: MEMORY_LIMIT
-            #       name: adservice
+            cpu: {{para.CPU_LIMIT}}m
+            memory: {{para.MEMORY_LIMIT}}Mi
         readinessProbe:
           initialDelaySeconds: 20
           periodSeconds: 15
@@ -83,12 +67,6 @@ kind: Service
 metadata:
   name: adservice
 spec:
-  # securityContext:
-  #   sysctls:
-  #   - name: net.ipv4.tcp_rmem
-  #     value: "4096"
-  #   - name: net.ipv4.tcp_wmem
-  #     value: "4096"
   type: ClusterIP
   selector:
     app: adservice
