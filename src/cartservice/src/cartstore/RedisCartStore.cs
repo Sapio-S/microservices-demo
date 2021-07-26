@@ -25,6 +25,10 @@ namespace cartservice.cartstore
         private readonly byte[] emptyCartBytes;
         private readonly string connectionString;
 
+        private string maxmemory;
+        private string maxmemory_samples;
+        private string hash_max_ziplist_entries;
+
         // const string token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
         const string bucket = "trace";
         const string org = "1205402283@qq.com";
@@ -46,7 +50,7 @@ namespace cartservice.cartstore
             writeApi0.WritePoint(bucket, org, p);
         }
 
-        public RedisCartStore(string redisAddress)
+        public RedisCartStore(string redisAddress, string maxmemory_, string maxmemory_samples_, string hash_max_ziplist_entries_)
         {
             // Serialize empty cart into byte array.
             var cart = new Hipstershop.Cart();
@@ -60,7 +64,9 @@ namespace cartservice.cartstore
             redisConnectionOptions.ReconnectRetryPolicy = new ExponentialRetry(100);
 
             redisConnectionOptions.KeepAlive = 180;
-
+            hash_max_ziplist_entries = hash_max_ziplist_entries_;
+            maxmemory_samples = maxmemory_samples_;
+            maxmemory = maxmemory_;
         }
 
         public Task InitializeAsync()
@@ -104,6 +110,11 @@ namespace cartservice.cartstore
                 cache.StringSet("cart", "OK" );
                 object res = cache.StringGet("cart");
                 Console.WriteLine($"Small test result: {res}");
+
+                Console.WriteLine("changing redis configuration...");
+                Console.WriteLine("config set maxmemory response : " + cache.Execute("CONFIG", "SET", "maxmemory",maxmemory).ToString());
+                Console.WriteLine("config set maxmemory-samples response : " + cache.Execute("CONFIG", "SET", "maxmemory-samples",maxmemory_samples).ToString());
+                Console.WriteLine("config set hash-max-ziplist-entries response : " + cache.Execute("CONFIG", "SET", "hash-max-ziplist-entries",hash_max_ziplist_entries).ToString());
 
                 redis.InternalError += (o, e) => { Console.WriteLine(e.Exception); };
                 redis.ConnectionRestored += (o, e) =>

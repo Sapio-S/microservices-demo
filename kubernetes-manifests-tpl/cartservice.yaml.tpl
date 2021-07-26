@@ -41,6 +41,12 @@ spec:
         env:
         - name: REDIS_ADDR
           value: "redis-cart:6379"
+        - name: maxmemory
+          value: "{{para.maxmemory}}MB"
+        - name: maxmemory_samples
+          value: "{{para.maxmemory_samples}}"
+        - name: hash_max_ziplist_entries
+          value: "{{para.hash_max_ziplist_entries}}"
         resources:
           requests:
             cpu: 200m

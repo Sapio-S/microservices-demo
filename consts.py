@@ -37,7 +37,20 @@ const_dic = {
         "IPV4_WMEM":{
             "MAX":4194304,
             "MIN":4096,
-        }
+        },
+        # note: 以下为redis的配置，由于redis在cartservice中初始化，因此将参数移动到了这里
+        "hash_max_ziplist_entries":{
+            "MAX":4096,
+            "MIN":32,
+        },
+        "maxmemory_samples":{
+            "MAX":10,
+            "MIN":1,
+        },
+        "maxmemory":{
+            "MAX":16,
+            "MIN":0,
+        },
     },
     "checkoutservice":{
         "CPU_LIMIT":{
@@ -193,7 +206,7 @@ const_dic = {
         "IPV4_WMEM":{
             "MAX":4194304,
             "MIN":4096,
-        }
+        },
     },
     "shippingservice":{
         "CPU_LIMIT":{

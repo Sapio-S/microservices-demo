@@ -26,10 +26,13 @@ namespace cartservice
         public void ConfigureServices(IServiceCollection services)
         {
             string redisAddress = Configuration["REDIS_ADDR"];
+            string hash_max_ziplist_entries = Configuration["hash_max_ziplist_entries"];
+            string maxmemory_samples = Configuration["maxmemory_samples"];
+            string maxmemory = Configuration["maxmemory"];
             ICartStore cartStore = null;
             if (!string.IsNullOrEmpty(redisAddress))
             {
-                cartStore = new RedisCartStore(redisAddress);
+                cartStore = new RedisCartStore(redisAddress, maxmemory, maxmemory_samples, hash_max_ziplist_entries);
             }
             else
             {

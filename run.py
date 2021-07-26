@@ -109,6 +109,7 @@ def print_cmd(p):
             print(line)
 
 def get_ip():
+    # TODO 更换部署后需要更改这个命令
     get_ip = subprocess.Popen("minikube service frontend-external", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
     get_ip.wait()
     output = get_ip.stdout.read()
@@ -239,23 +240,54 @@ def export_data(data, i):
     np.save("res/param"+str(i), para_dic[i])
     print(data)
 
+def set_redis(i):
+    '''
+    在命令行进入redis所在的docker，通过config set进行设置，之后退出
+    '''
+    pass
+    # para = para_dic["redis"][i]
+    # get_docker = subprocess.Popen("docker ps", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
+    # get_docker.wait()
+    # output = get_docker.stdout.read()
+    # objs = re.search(r'.* (k8s_redis_redis-cart.*?)\\n.*', str(output))
+    # docker_name = objs.group(1)
+    # print("found redis docker! name is", docker_name)
+
+    # cmds = ["docker exec -it "+docker_name+" redis-cli", 
+    #     "config set maxmemory "+str(para["maxmemory"])+"MB", 
+    #     "config set maxmemory-samples "+str(para["maxmemory-samples"]), 
+    #     "config set hash-max-ziplist-entries "+str(para["hash-max-ziplist-entries"]), 
+    #     "exit"]
+    # os.system(cmds[0])
+    # print(cmds[1])
+        # sp = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    
+    # redis = redis.Redis(
+    # host='localhost',
+    # port=port, )
+
+
 def run_one_set(i):
     '''
     测试一组参数，并收集数据
     '''
-    print("collecting data of parameter set", i)
+    # print("collecting data of parameter set", i)
     generate_yaml(i)
 
-    print("deploying...")
-    retry = 0
-    skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    ret_code = skaffold_run.wait()
-    while ret_code != 0 and retry < max_retry:
-        print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-        ret_code = skaffold_run.wait()
-        retry += 1
-    print("successfully deployed!")
+    # print("deploying...")
+    # retry = 0
+    # skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    # ret_code = skaffold_run.wait()
+    # while ret_code != 0:
+    #     print("deployment failed. return code is "+str(ret_code)+" Retry. ")
+    #     skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    #     ret_code = skaffold_run.wait()
+    #     retry += 1
+    #     if retry > max_retry:
+    #         sys.exit(1)
+    # print("successfully deployed!")
+
+    # set_redis(i)
 
     # start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
     # start_timestamp = time.time() # 计算rps
@@ -288,11 +320,12 @@ def run_one_set(i):
     # os.remove("locust_table")
     # os.mkdir("locust_table")
 
-    print("finished testing parameter set", i)
+    print("finished tested parameter set", i)
 
 def main():
     num_samples = 1
     generate_parameters(num_samples)
+    print(para_dic["redis"])
     for i in range(num_samples):
         run_one_set(i)
 
