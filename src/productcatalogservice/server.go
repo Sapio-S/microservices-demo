@@ -148,7 +148,9 @@ func serverInterceptor(ctx context.Context,
 	start := time.Now()
 	// Calls the handler
 	h, err := handler(ctx, req)
-
+	if(info.FullMethod == "/grpc.health.v1.Health/Check"){
+		return h, err
+	}
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
 

@@ -27,6 +27,8 @@ influxclient = InfluxDBClient(url="https://eastus-1.azure.cloud2.influxdata.com"
 
 quantile = ["0.50", '0.75', '0.90', '0.99']
 
+headers = ["service", "rps","avg", "0.50", '0.75', '0.90', '0.99']
+
 # global variables
 para_dic = {} # 参数配置，以service为基本单元
 
@@ -188,9 +190,9 @@ def query_db(start_time, end_time, duration):
                 if service is None:
                     continue
                 try:
-                    data[service]["rps"] = record.values['_value']
+                    data[service]["avg"] = record.values['_value']
                 except:
-                    data[service]["rps"] = 0
+                    data[service]["avg"] = 0
 
     # get p50, p75, p90, p99 latency of a service
     for q in quantile:
@@ -221,8 +223,21 @@ def query_db(start_time, end_time, duration):
             for record in table.records:
                 service = record.values['op']
                 data[service][q] = record.values['_value']
-    print(data)
     return data
+
+def change2csv(data, i):
+    rows = services.copy()
+    rows.append("total")
+    row_data = []
+    for k, v in data.items():
+        this_row = [k]
+        for _, item in v.items():
+            this_row.append(item)
+        row_data.append(this_row)
+    with open('res/data'+str(i)+".csv", "w") as f:
+        f_csv = csv.writer(f)
+        f_csv.writerow(headers)
+        f_csv.writerows(row_data)
 
 def export_data(data, i):
     data["total"] = {}
@@ -237,86 +252,62 @@ def export_data(data, i):
         data["total"]["0.90"] = float(last_row["90%"])
         data["total"]["0.99"] = float(last_row["99%"])
     np.save("res/data"+str(i), data)
-    np.save("res/param"+str(i), para_dic[i])
-    print(data)
-
-def set_redis(i):
-    '''
-    在命令行进入redis所在的docker，通过config set进行设置，之后退出
-    '''
-    pass
-    # para = para_dic["redis"][i]
-    # get_docker = subprocess.Popen("docker ps", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
-    # get_docker.wait()
-    # output = get_docker.stdout.read()
-    # objs = re.search(r'.* (k8s_redis_redis-cart.*?)\\n.*', str(output))
-    # docker_name = objs.group(1)
-    # print("found redis docker! name is", docker_name)
-
-    # cmds = ["docker exec -it "+docker_name+" redis-cli", 
-    #     "config set maxmemory "+str(para["maxmemory"])+"MB", 
-    #     "config set maxmemory-samples "+str(para["maxmemory-samples"]), 
-    #     "config set hash-max-ziplist-entries "+str(para["hash-max-ziplist-entries"]), 
-    #     "exit"]
-    # os.system(cmds[0])
-    # print(cmds[1])
-        # sp = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    
-    # redis = redis.Redis(
-    # host='localhost',
-    # port=port, )
-
+    para = {}
+    for service in services:
+        para[service] = para_dic[service][i]
+    np.save("res/param"+str(i), para)
+    change2csv(data, i)
+    # print(data)
+    # print(para)
 
 def run_one_set(i):
     '''
     测试一组参数，并收集数据
     '''
-    # print("collecting data of parameter set", i)
+    print("collecting data of parameter set", i)
     generate_yaml(i)
 
-    # print("deploying...")
-    # retry = 0
-    # skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    # ret_code = skaffold_run.wait()
-    # while ret_code != 0:
-    #     print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-    #     skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    #     ret_code = skaffold_run.wait()
-    #     retry += 1
-    #     if retry > max_retry:
-    #         sys.exit(1)
-    # print("successfully deployed!")
+    print("deploying...")
+    retry = 0
+    skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    ret_code = skaffold_run.wait()
+    while ret_code != 0:
+        print("deployment failed. return code is "+str(ret_code)+" Retry. ")
+        skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+        ret_code = skaffold_run.wait()
+        retry += 1
+        if retry > max_retry:
+            sys.exit(1)
+    print("successfully deployed!")
 
-    # set_redis(i)
+    start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
+    start_timestamp = time.time() # 计算rps
 
-    # start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    # start_timestamp = time.time() # 计算rps
+    # 获取服务接口，进行压力测试
+    locust_ip = get_ip()
+    locust_cmd = "/home/yuqingxie/.local/bin/locust \
+        -f src/loadgenerator/locustfile_original.py --headless -u 10 -r 10 \
+        --run-time 1m --host "+locust_ip+" --csv=locust_table/"+str(i)
+    # print(locust_cmd)
+    locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    locust_run.wait()
 
-    # # 获取服务接口，进行压力测试
-    # locust_ip = get_ip()
-    # locust_cmd = "/home/yuqingxie/.local/bin/locust \
-    #     -f src/loadgenerator/locustfile_original.py --headless -u 10 -r 10 \
-    #     --run-time 1m --host "+locust_ip+" --csv=locust_table/"+str(i)
-    # # print(locust_cmd)
-    # locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    # locust_run.wait()
+    # 清除当前的部署，触发service中的数据上传
+    skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    skaffold_delete.wait()
 
-    # # 清除当前的部署，触发service中的数据上传
-    # # skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    # # skaffold_delete.wait()
+    end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
+    end_timestamp = time.time() # 计算rps
 
-    # end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    # end_timestamp = time.time() # 计算rps
+    # 从influxDB中获取各个服务的latency与rps
+    # data = query_db("2021-07-25T12:12:28.983438+00:00", "2021-07-25T12:13:30.519675+00:00", 65)
+    # print(start_time, end_time)
+    data = query_db(start_time, end_time, end_timestamp - start_timestamp)
 
-    # # 从influxDB中获取各个服务的latency与rps
-    # # data = query_db("2021-07-25T12:12:28.983438+00:00", "2021-07-25T12:13:30.519675+00:00", 65)
-    # # print(start_time, end_time)
-    # data = query_db(start_time, end_time, end_timestamp - start_timestamp)
+    # 生成报表，导出
+    export_data(data, i)
 
-    # # 生成报表，导出
-    # export_data(data, i)
-
-    # 为了节省空间，清空locust_table文件夹
+    # # 为了节省空间，清空locust_table文件夹
     # os.remove("locust_table")
     # os.mkdir("locust_table")
 
@@ -325,7 +316,7 @@ def run_one_set(i):
 def main():
     num_samples = 1
     generate_parameters(num_samples)
-    print(para_dic["redis"])
+    print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):
         run_one_set(i)
 

@@ -84,17 +84,17 @@ func serverInterceptor(ctx context.Context,
 	handler grpc.UnaryHandler) (interface{}, error) {
 
 	start := time.Now()
-	// Calls the handler
 	h, err := handler(ctx, req)
-	// log.Info(req)
 
+	if(info.FullMethod == "/grpc.health.v1.Health/Check"){
+		return h, err
+	}
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
 
 	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)
-
 	return h, err
 }
 
