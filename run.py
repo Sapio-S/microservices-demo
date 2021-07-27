@@ -11,7 +11,7 @@ import yaml
 from datetime import datetime, timezone
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
-from kubernetes import client, config
+# from kubernetes import client, config
 
 from consts import const_dic
 # constants
@@ -101,6 +101,7 @@ def generate_parameters(num_samples):
                 service_dic[header[j]] = params[i][j]
             service_list.append(service_dic)
         para_dic[service] = service_list
+    np.save("res/param", para_dic)
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -111,7 +112,8 @@ def print_cmd(p):
             print(line)
 
 def get_ip():
-    # TODO 更换部署后需要更改这个命令
+    # 更换部署后需要更改这个命令
+    # 此函数用来获取minikube部署中得到的网址
     get_ip = subprocess.Popen("minikube service frontend-external", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
     get_ip.wait()
     output = get_ip.stdout.read()
@@ -255,7 +257,7 @@ def export_data(data, i):
     para = {}
     for service in services:
         para[service] = para_dic[service][i]
-    np.save("res/param"+str(i), para)
+    # np.save("res/param"+str(i), para)
     change2csv(data, i)
     # print(data)
     # print(para)
@@ -267,13 +269,16 @@ def run_one_set(i):
     print("collecting data of parameter set", i)
     generate_yaml(i)
 
+    # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+        shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+            shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1
         if retry > max_retry:
@@ -284,23 +289,32 @@ def run_one_set(i):
     start_timestamp = time.time() # 计算rps
 
     # 获取服务接口，进行压力测试
-    locust_ip = get_ip()
-    locust_cmd = "/home/yuqingxie/.local/bin/locust \
-        -f src/loadgenerator/locustfile_original.py --headless -u 10 -r 10 \
-        --run-time 1m --host "+locust_ip+" --csv=locust_table/"+str(i)
-    # print(locust_cmd)
-    locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    locust_run.wait()
+    # locust_ip = get_ip() # for minikube only
+    expose_ip = subprocess.Popen("exec kubectl port-forward deployment/frontend 8080:8080", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    # while expose_ip.poll() is None:
+    #     line = expose_ip.stdout.readline()
+    #     line = line.strip()
+    #     if line == b'Forwarding from [::1]:8080 -> 8080':
+    #         print(line)
+    #         break
+    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 150 -r 100 \
+        -f src/loadgenerator/locustfile_original.py --headless \
+        --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
+    print(locust_cmd)
+    locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    ret_code = locust_run.wait()
+    print("locust exited with code ", ret_code)
 
     # 清除当前的部署，触发service中的数据上传
+    print("cleaning deployment...")
+    expose_ip.kill()
     skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     skaffold_delete.wait()
-
+    
     end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
     end_timestamp = time.time() # 计算rps
 
     # 从influxDB中获取各个服务的latency与rps
-    # data = query_db("2021-07-25T12:12:28.983438+00:00", "2021-07-25T12:13:30.519675+00:00", 65)
     # print(start_time, end_time)
     data = query_db(start_time, end_time, end_timestamp - start_timestamp)
 
@@ -312,9 +326,10 @@ def run_one_set(i):
     # os.mkdir("locust_table")
 
     print("finished tested parameter set", i)
+    print("\n\n\n\n")
 
 def main():
-    num_samples = 1
+    num_samples = 300
     generate_parameters(num_samples)
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):
