@@ -16,3 +16,5 @@ release/wi-kubernetes-manifests.yaml
 /res
 /generated-manifests
 /locust_table
+/res*
+/locust_table*

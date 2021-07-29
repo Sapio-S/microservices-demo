@@ -101,7 +101,7 @@ def generate_parameters(num_samples):
                 service_dic[header[j]] = params[i][j]
             service_list.append(service_dic)
         para_dic[service] = service_list
-    np.save("res/param", para_dic)
+    np.save("res/param"+str(num_samples), para_dic)
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -253,7 +253,7 @@ def export_data(data, i):
         data["total"]["0.75"] = float(last_row["75%"])
         data["total"]["0.90"] = float(last_row["90%"])
         data["total"]["0.99"] = float(last_row["99%"])
-    np.save("res/data"+str(i), data)
+    # np.save("res/data"+str(i), data)
     para = {}
     for service in services:
         para[service] = para_dic[service][i]
@@ -297,7 +297,7 @@ def run_one_set(i):
     #     if line == b'Forwarding from [::1]:8080 -> 8080':
     #         print(line)
     #         break
-    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 150 -r 100 \
+    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 80 -r 20 \
         -f src/loadgenerator/locustfile_original.py --headless \
         --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
     print(locust_cmd)
@@ -316,7 +316,10 @@ def run_one_set(i):
 
     # 从influxDB中获取各个服务的latency与rps
     # print(start_time, end_time)
+    start_query = time.time()
     data = query_db(start_time, end_time, end_timestamp - start_timestamp)
+    end_query = time.time()
+    print("query takes", end_query - start_query, "seconds")
 
     # 生成报表，导出
     export_data(data, i)
@@ -329,7 +332,7 @@ def run_one_set(i):
     print("\n\n\n\n")
 
 def main():
-    num_samples = 300
+    num_samples = 1
     generate_parameters(num_samples)
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):

@@ -16,7 +16,7 @@
 
 import random
 from locust import HttpUser, TaskSet, between
-
+from locust.contrib.fasthttp import FastHttpUser
 products = [
     '0PUK6V6EV0',
     '1YMWWN1N4O',
@@ -64,8 +64,26 @@ def checkout(l):
         'credit_card_cvv': '672',
     })
 
-class UserBehavior(TaskSet):
+rps = 200.0
+class TaskSetRPS(TaskSet):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.previous_time = 0.0
 
+    def rps_sleep(self, rps):
+        current_time = float(time.time())
+        next_time = self.previous_time + runners.locust_runner.num_clients / rps
+        if current_time > next_time:
+            if runners.locust_runner.state == runners.STATE_RUNNING:
+                logging.warning("Failed to reach target rps, even after rampup has finished")
+            self.previous_time = current_time
+            return
+
+        self.previous_time = next_time
+        gevent.sleep(next_time - current_time)
+
+
+class UserBehavior(TaskSet):
     def on_start(self):
         index(self)
 
@@ -76,6 +94,6 @@ class UserBehavior(TaskSet):
         viewCart: 3,
         checkout: 1}
 
-class WebsiteUser(HttpUser):
+class WebsiteUser(FastHttpUser):
     tasks = [UserBehavior]
-    wait_time = between(1, 10)
+    wait_time = between(0,0)

@@ -37,8 +37,8 @@ public class InfluxInterceptor implements ServerInterceptor {
   InfluxInterceptor(){
     this.influxDBClient = InfluxDBClientFactory.create("https://eastus-1.azure.cloud2.influxdata.com", this.token.toCharArray(), this.org, this.bucket);
     this.writeApi = this.influxDBClient.getWriteApi(WriteOptions.builder()
-      .batchSize(500)
-      .flushInterval(1000)
+      .batchSize(2000)
+      .flushInterval(60000)
       .bufferLimit(10000)
       .jitterInterval(0)
       .retryInterval(5000)
@@ -61,7 +61,8 @@ public class InfluxInterceptor implements ServerInterceptor {
     ServerCall.Listener<ReqT> res = next.startCall(call, requestHeaders);
 
     long end = (System.nanoTime() - start)/1000;  // change into us
-    Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "adservice").addField("latency", end).time(Instant.now(), WritePrecision.NS);;
+    // Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "adservice").addField("latency", end).time(Instant.now(), WritePrecision.NS);;
+    Point point = Point.measurement("s").addTag("service", "adservice").addField("latency", end);
     this.writeApi.writePoint(point);
     return res;
   }

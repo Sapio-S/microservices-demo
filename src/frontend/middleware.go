@@ -77,8 +77,9 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"http.resp.took_us": int64(time.Since(start).Microseconds()), //test?
 			"http.resp.status":  rr.status,
 			"http.resp.bytes":   rr.b}).Debugf("request complete")
-
-		p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").SetTime(time.Now())
+		
+		p := influxdb2.NewPointWithMeasurement("s").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("service", "frontend")
+		// p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").SetTime(time.Now())
 		// write point asynchronously
 		writeAPI.WritePoint(p)
 	}()

@@ -92,7 +92,7 @@ func serverInterceptor(ctx context.Context,
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
 
-	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).SetTime(time.Now())
+	p := influxdb2.NewPointWithMeasurement("s").AddField("latency", duration).AddTag("service", "checkoutservice")
 	// write point asynchronously
 	writeAPI.WritePoint(p)
 	return h, err
@@ -140,8 +140,8 @@ func main() {
 
 	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
 		influxdb2.DefaultOptions().
-		SetBatchSize(100).
-		SetFlushInterval(1000))
+		SetBatchSize(2000).
+		SetFlushInterval(60000))
 	writeAPI = client.WriteAPI(org, bucket)
 	go sigHandler()
 

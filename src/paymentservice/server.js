@@ -34,8 +34,8 @@ const org = '1205402283@qq.com';
 const bucket = 'trace';
 const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
 const writeOptions = {
-  batchSize: 100, 
-  flushInterval: 1000,
+  batchSize: 2000, 
+  flushInterval: 60000,
 }
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 
@@ -80,7 +80,8 @@ class HipsterShopServer {
   
       }
       else{ // charge
-        const point = new Point('service_metric').floatField("latency", costtime).tag("service", "paymentservice").tag("method", "charge").timestamp(new Date())
+        const point = new Point('s').floatField("latency", costtime).tag("service", "paymentservice")
+        // const point = new Point('service_metric').floatField("latency", costtime).tag("service", "paymentservice").tag("method", "charge").timestamp(new Date())
         writeApi.writePoint(point)
         // console.log(`latency ${costtime}`)
       }
