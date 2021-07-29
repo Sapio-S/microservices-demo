@@ -132,7 +132,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> count() \
             '.format(start_time, end_time)
@@ -146,7 +146,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> toFloat() \
             |> mean() \
@@ -161,7 +161,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> count() \
             '.format(start_time, end_time)
@@ -180,7 +180,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> toFloat() \
             |> mean() \
@@ -200,7 +200,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> toFloat() \
             |> quantile(q: {}, column: "_value") \
@@ -215,7 +215,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> toFloat() \
             |> quantile(q: {}, column: "_value") \
