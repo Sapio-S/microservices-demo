@@ -37,11 +37,8 @@ public class InfluxInterceptor implements ServerInterceptor {
   InfluxInterceptor(){
     this.influxDBClient = InfluxDBClientFactory.create("https://eastus-1.azure.cloud2.influxdata.com", this.token.toCharArray(), this.org, this.bucket);
     this.writeApi = this.influxDBClient.getWriteApi(WriteOptions.builder()
-      .batchSize(500)
-      .flushInterval(1000)
-      .bufferLimit(10000)
-      .jitterInterval(0)
-      .retryInterval(5000)
+      .batchSize(2000)
+      .flushInterval(60000)
       .build());
     terminateHandler handler = new terminateHandler(this.writeApi, this.influxDBClient);
     Signal.handle(new Signal("INT"), handler);

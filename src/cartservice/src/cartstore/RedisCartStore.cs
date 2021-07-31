@@ -40,9 +40,8 @@ namespace cartservice.cartstore
         public void initInflux(){
             this.influxclient = InfluxDBClientFactory.Create("https://eastus-1.azure.cloud2.influxdata.com", "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==");
             var options = InfluxDB.Client.WriteOptions.CreateNew()
-                .BatchSize(100)
-                .MaxRetryDelay(2_000)
-                .MaxRetries(5)
+                .BatchSize(2000)
+                .MaxRetryDelay(60_000)
                 .Build();
             this.writeApi0 = this.influxclient.GetWriteApi(options);
         }

@@ -140,8 +140,8 @@ func main() {
 
 	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
 		influxdb2.DefaultOptions().
-		SetBatchSize(100).
-		SetFlushInterval(1000))
+		SetBatchSize(2000).
+		SetFlushInterval(60000))
 	writeAPI = client.WriteAPI(org, bucket)
 	go sigHandler()
 

@@ -329,7 +329,7 @@ def run_one_set(i):
     print("\n\n\n\n")
 
 def main():
-    num_samples = 300
+    num_samples = 1
     generate_parameters(num_samples)
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):

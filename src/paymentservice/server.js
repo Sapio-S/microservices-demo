@@ -34,8 +34,8 @@ const org = '1205402283@qq.com';
 const bucket = 'trace';
 const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
 const writeOptions = {
-  batchSize: 100, 
-  flushInterval: 1000,
+  batchSize: 2000, 
+  flushInterval: 60000,
 }
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 

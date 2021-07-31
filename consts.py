@@ -1,16 +1,16 @@
 const_dic = {
     "adservice":{
         "MAX_ADS_TO_SERVE":{
-            "MAX":10,
+            "MAX":5,
             "MIN":1,
         },
-        "CPU_LIMIT":{
-            "MAX":400,
-            "MIN":200,
+        "CPU_LIMIT":{ # 300, request 200
+            "MAX":500,
+            "MIN":250,
         },
-        "MEMORY_LIMIT":{
-            "MAX":330,
-            "MIN":180,
+        "MEMORY_LIMIT":{ # 300, request 180
+            "MAX":500,
+            "MIN":250,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -22,13 +22,13 @@ const_dic = {
         }
     },
     "cartservice":{
-        "CPU_LIMIT":{
-            "MAX":400,
-            "MIN":200,
+        "CPU_LIMIT":{ # 300, request 200
+            "MAX":500,
+            "MIN":250, 
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -53,13 +53,13 @@ const_dic = {
         },
     },
     "checkoutservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -71,13 +71,13 @@ const_dic = {
         }
     },
     "currencyservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -89,17 +89,17 @@ const_dic = {
         }
     },
     "emailservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "MAX_WORKERS":{
             "MAX":20,
-            "MIN":1,
+            "MIN":5,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -111,13 +111,13 @@ const_dic = {
         }
     },
     "frontend":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -129,13 +129,13 @@ const_dic = {
         }
     },
     "paymentservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -147,13 +147,13 @@ const_dic = {
         }
     },
     "productcatalogservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -165,20 +165,20 @@ const_dic = {
         }
     },
     "recommendationservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":370,
-            "MIN":220,
+        "MEMORY_LIMIT":{ # 450, request 220
+            "MAX":800,
+            "MIN":300,
         },
         "MAX_WORKERS":{
             "MAX":20,
-            "MIN":1,
+            "MIN":5,
         },
         "MAX_RESPONSE":{
-            "MAX":5,
+            "MAX":4,
             "MIN":1,
         },
         "IPV4_RMEM":{
@@ -191,13 +191,13 @@ const_dic = {
         }
     },
     "redis":{
-        "CPU_LIMIT":{
-            "MAX":270,
-            "MIN":70,
-        },
-        "MEMORY_LIMIT":{
+        "CPU_LIMIT":{ # 125, request 70
             "MAX":350,
-            "MIN":200,
+            "MIN":120,
+        },
+        "MEMORY_LIMIT":{ # 256, request 200
+            "MAX":450,
+            "MIN":250,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -209,13 +209,13 @@ const_dic = {
         },
     },
     "shippingservice":{
-        "CPU_LIMIT":{
-            "MAX":300,
-            "MIN":100,
+        "CPU_LIMIT":{ # 200, request 100
+            "MAX":400,
+            "MIN":150,
         },
-        "MEMORY_LIMIT":{
-            "MAX":200,
-            "MIN":64,
+        "MEMORY_LIMIT":{ # 128, request 64
+            "MAX":250,
+            "MIN":100,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
