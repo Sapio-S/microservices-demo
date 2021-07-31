@@ -14,11 +14,17 @@ class InfluxInterceptor(ServerInterceptor):
         signal.signal(signal.SIGINT, self.close_program)
         signal.signal(signal.SIGTERM, self.close_program)
         self.service = name
-        self.client = InfluxDBClient(url="https://eastus-1.azure.cloud2.influxdata.com", 
-                                        token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==", 
-                                        org="1205402283@qq.com")
-        self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
-                                                                        flush_interval=60_000))
+        self.client = InfluxDBClient(url="http://10.0.0.29:8086", 
+                                        token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==", 
+                                        org="msra")
+        self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000, flush_interval=60_000))
+        # self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=200,
+        #                                                                 flush_interval=10_000,
+        #                                                                 jitter_interval=2_000,
+        #                                                                 retry_interval=5_000,
+        #                                                                 max_retries=5,
+        #                                                                  max_retry_delay=30_000,
+        #                                                                 exponential_base=2))
         
     def close_program(self, *args):
         self.write_api.flush()
@@ -37,6 +43,8 @@ class InfluxInterceptor(ServerInterceptor):
         p = Point("s") \
             .tag("service", self.service) \
             .field("latency", latency)
+            # .tag("method", method_name) \
+            # .time(datetime.utcnow(), WritePrecision.NS)
         self.write_api.write(bucket="trace", record=p)
         return res
 

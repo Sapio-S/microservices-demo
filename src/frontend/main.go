@@ -45,9 +45,9 @@ const (
 	cookieCurrency  = cookiePrefix + "currency"
 )
 
-const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA=="
 const bucket = "trace"
-const org = "1205402283@qq.com"
+const org = "msra"
 
 var (
 	client influxdb2.Client
@@ -150,7 +150,7 @@ func main() {
 	r.HandleFunc("/_healthz", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "ok") })
 
 	
-	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+	client = influxdb2.NewClientWithOptions("http://10.0.0.29:8086", token, 
 		influxdb2.DefaultOptions().
 		SetBatchSize(2000).
 		SetFlushInterval(60000))

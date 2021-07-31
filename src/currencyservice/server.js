@@ -133,10 +133,10 @@ function getNanoSecTime() {
   var hrTime = process.hrtime();
   return hrTime[0] * 1000000000 + hrTime[1];
 }
-const token = 'EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==';
-const org = '1205402283@qq.com';
+const token = 'pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==';
+const org = 'msra';
 const bucket = 'trace';
-const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
+const client = new InfluxDB({url: 'http://10.0.0.29:8086', token: token})
 const writeOptions = {
   batchSize: 2000, 
   flushInterval: 60000,
@@ -144,7 +144,9 @@ const writeOptions = {
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 
 function handleExit(signal) {
+  writeApi.flush();
   writeApi.close();
+  logger.info(`touching exit!`);
   process.exit(0);
 }
 process.on('SIGINT', handleExit);
@@ -169,19 +171,19 @@ function main () {
       console.log("error!");
     }
     // do stuff after call
-    const costtime = (getNanoSecTime() - start)/1000;
+    var costtime = (getNanoSecTime() - start)/1000;
     if(ctx.call.request.hasOwnProperty("service")){ // probe check
 
     }
     else if(ctx.call.request.hasOwnProperty("from")){ // conversion
-      const point = new Point('s').floatField("latency", costtime).tag("service", "currencyservice")//.tag("method", "conversion").timestamp(new Date())
+      var point = new Point('s').floatField("latency", costtime).tag("service", "currencyservice").tag("method", "conversion").timestamp(new Date())
       writeApi.writePoint(point)
-      // console.log(`latency ${costtime}`)
+      console.log(`latency ${costtime}`)
     }
     else{ // getSupportedCurrencies
-      const point = new Point('s').floatField("latency", costtime).tag("service", "currencyservice")//.tag("method", "get currency").timestamp(new Date())
+      var point = new Point('s').floatField("latency", costtime).tag("service", "currencyservice").tag("method", "get currency").timestamp(new Date())
       writeApi.writePoint(point)
-      // console.log(`latency ${costtime}`)
+      console.log(`latency ${costtime}`)
     }
     
   }

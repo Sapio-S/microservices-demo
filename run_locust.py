@@ -20,10 +20,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
-org = "1205402283@qq.com"
+token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA=="
+org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="https://eastus-1.azure.cloud2.influxdata.com", token=token)
+influxclient = InfluxDBClient(url="http://localhost:8086", token=token)
 
 quantile = ["0.50", '0.75', '0.90', '0.99']
 
@@ -286,7 +286,6 @@ def run_one_set(i):
     print("successfully deployed!")
 
     start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    start_timestamp = time.time() # 计算rps
 
     # 获取服务接口，进行压力测试
     # locust_ip = get_ip() # for minikube only
@@ -297,10 +296,11 @@ def run_one_set(i):
     #     if line == b'Forwarding from [::1]:8080 -> 8080':
     #         print(line)
     #         break
-    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 80 -r 20 \
+    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 200 -r 20 \
         -f src/loadgenerator/locustfile_original.py --headless \
         --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
     print(locust_cmd)
+    # start_timestamp = time.time() # 计算rps
     locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     ret_code = locust_run.wait()
     print("locust exited with code ", ret_code)
@@ -308,16 +308,17 @@ def run_one_set(i):
     # 清除当前的部署，触发service中的数据上传
     print("cleaning deployment...")
     expose_ip.kill()
-    skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    skaffold_delete.wait()
+    # skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    # skaffold_delete.wait()
     
     end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    end_timestamp = time.time() # 计算rps
+    # end_timestamp = time.time() # 计算rps
 
     # 从influxDB中获取各个服务的latency与rps
     # print(start_time, end_time)
     start_query = time.time()
-    data = query_db(start_time, end_time, end_timestamp - start_timestamp)
+    # print("time stamp diff is ", end_timestamp - start_timestamp)
+    data = query_db(start_time, end_time, 300) # for 5 min
     end_query = time.time()
     print("query takes", end_query - start_query, "seconds")
 

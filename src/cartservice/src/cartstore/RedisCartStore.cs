@@ -32,13 +32,13 @@ namespace cartservice.cartstore
 
         // const string token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
         const string bucket = "trace";
-        const string org = "1205402283@qq.com";
+        const string org = "msra";
         private readonly ConfigurationOptions redisConnectionOptions;
 
         private InfluxDBClient influxclient;
         private WriteApi writeApi0;
         public void initInflux(){
-            this.influxclient = InfluxDBClientFactory.Create("https://eastus-1.azure.cloud2.influxdata.com", "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==");
+            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.29:8086", "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==");
             var options = InfluxDB.Client.WriteOptions.CreateNew()
                 .BatchSize(2000)
                 .FlushInterval(60000)
@@ -167,7 +167,7 @@ namespace cartservice.cartstore
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
-                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "get");
+                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -197,7 +197,7 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 latency = (DateTime.Now.Ticks - start)/10;
             
-                var point2 = PointData.Measurement("s").Field("latency", latency).Tag("op", "set");
+                var point2 = PointData.Measurement("s").Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point2);
             }
@@ -222,7 +222,7 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
 
-                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "set");
+                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -248,7 +248,7 @@ namespace cartservice.cartstore
                 var value = await db.HashGetAsync(userId, CART_FIELD_NAME);
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
-                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "get");
+                var point = PointData.Measurement("s").Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
 

@@ -29,10 +29,10 @@ const logger = pino({
   useLevelLabels: true
 });
 
-const token = 'EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==';
-const org = '1205402283@qq.com';
+const token = 'pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==';
+const org = 'msra';
 const bucket = 'trace';
-const client = new InfluxDB({url: 'https://eastus-1.azure.cloud2.influxdata.com', token: token})
+const client = new InfluxDB({url: 'http://10.0.0.29:8086', token: token})
 const writeOptions = {
   batchSize: 2000, 
   flushInterval: 60000,
@@ -40,7 +40,9 @@ const writeOptions = {
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 
 function handleExit(signal) {
+  writeApi.flush();
   writeApi.close();
+  logger.info(`touching exit!`);
   process.exit(0);
 }
 process.on('SIGINT', handleExit);
