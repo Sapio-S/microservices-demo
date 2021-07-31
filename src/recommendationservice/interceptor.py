@@ -14,9 +14,9 @@ class InfluxInterceptor(ServerInterceptor):
         signal.signal(signal.SIGINT, self.close_program)
         signal.signal(signal.SIGTERM, self.close_program)
         self.service = name
-        self.client = InfluxDBClient(url="https://eastus-1.azure.cloud2.influxdata.com", 
-                                        token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==", 
-                                        org="1205402283@qq.com")
+        self.client = InfluxDBClient(url="http://10.0.0.29:8086", 
+                                        token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==", 
+                                        org="msra")
         self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
                                                                         flush_interval=60_000))
         

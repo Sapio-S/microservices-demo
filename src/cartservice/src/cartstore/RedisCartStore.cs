@@ -32,16 +32,15 @@ namespace cartservice.cartstore
 
         // const string token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
         const string bucket = "trace";
-        const string org = "1205402283@qq.com";
+        const string org = "msra";
         private readonly ConfigurationOptions redisConnectionOptions;
 
         private InfluxDBClient influxclient;
         private WriteApi writeApi0;
         public void initInflux(){
-            this.influxclient = InfluxDBClientFactory.Create("https://eastus-1.azure.cloud2.influxdata.com", "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==");
+            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.29:8086", "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==");
             var options = InfluxDB.Client.WriteOptions.CreateNew()
                 .BatchSize(2000)
-                .MaxRetryDelay(60_000)
                 .Build();
             this.writeApi0 = this.influxclient.GetWriteApi(options);
         }

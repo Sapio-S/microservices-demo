@@ -20,10 +20,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
-org = "1205402283@qq.com"
+token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA=="
+org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="https://eastus-1.azure.cloud2.influxdata.com", token=token)
+influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token)
 
 quantile = ["0.50", '0.75', '0.90', '0.99']
 

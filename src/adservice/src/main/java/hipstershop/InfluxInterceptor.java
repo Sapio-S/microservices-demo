@@ -28,14 +28,14 @@ public class InfluxInterceptor implements ServerInterceptor {
 
   private static final Logger logger = Logger.getLogger(InfluxInterceptor.class.getName());
 
-  private static String token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
-  private static String org = "1205402283@qq.com";
+  private static String token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==";
+  private static String org = "msra";
   private static String bucket = "trace";
   private static InfluxDBClient influxDBClient;
   private static WriteApi writeApi;
 
   InfluxInterceptor(){
-    this.influxDBClient = InfluxDBClientFactory.create("https://eastus-1.azure.cloud2.influxdata.com", this.token.toCharArray(), this.org, this.bucket);
+    this.influxDBClient = InfluxDBClientFactory.create("http://10.0.0.29:8086", this.token.toCharArray(), this.org, this.bucket);
     this.writeApi = this.influxDBClient.getWriteApi(WriteOptions.builder()
       .batchSize(2000)
       .flushInterval(60000)

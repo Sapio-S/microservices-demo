@@ -74,9 +74,9 @@ type checkoutService struct {
 	paymentSvcAddr        string
 }
 
-const token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg=="
+const token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA=="
 const bucket = "trace"
-const org = "1205402283@qq.com"
+const org = "msra"
 // Authorization unary interceptor function to handle authorize per RPC call
 func serverInterceptor(ctx context.Context,
 	req interface{},
@@ -138,7 +138,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client = influxdb2.NewClientWithOptions("https://eastus-1.azure.cloud2.influxdata.com", token, 
+	client = influxdb2.NewClientWithOptions("http://10.0.0.29:8086", token, 
 		influxdb2.DefaultOptions().
 		SetBatchSize(2000).
 		SetFlushInterval(60000))
