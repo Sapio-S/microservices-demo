@@ -306,9 +306,9 @@ def run_one_set(i):
 
     # 清除当前的部署，触发service中的数据上传
     print("cleaning deployment...")
-    # expose_ip.kill()
-    # skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    # skaffold_delete.wait()
+    expose_ip.kill()
+    skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
+    skaffold_delete.wait()
     
     end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
 
