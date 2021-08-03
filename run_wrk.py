@@ -20,10 +20,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "HKnedcXLQ0ikCE-DB_MZlLfvKyIt7WW4B8Svl5_CjWriEMQS0pYD6YORRXAf6ni2_ce4clRz0O0WNNGeFAzFQg=="
+token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://localhost:8086", token=token)
+influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token)
 
 quantile = ["0.50", '0.75', '0.90', '0.99']
 
@@ -112,13 +112,13 @@ def print_cmd(p):
             print(line)
 
 def get_ip():
-    # 更换部署后需要更改这个命令
-    # 此函数用来获取minikube部署中得到的网址
-    get_ip = subprocess.Popen("minikube service frontend-external", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
+    # 此函数用来获取k8s部署中cluster IP
+    get_ip = subprocess.Popen("kubectl get svc frontend", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
     get_ip.wait()
     output = get_ip.stdout.read()
-    objs = re.search(r'.* (http://.*?) .*', str(output))
-    return objs.group(1)
+    ip = re.search(r'.* (10.*?) .*', str(output))
+    port = re.search(r'.*  (.*?)/TCP', str(output))
+    return "http://" + ip.group(1) + ":" + port.group(1)
 
 def query_db(start_time, end_time, duration):
     data = {}
@@ -132,7 +132,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> count() \
             '.format(start_time, end_time)
@@ -146,7 +146,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> toFloat() \
             |> mean() \
@@ -161,7 +161,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> count() \
             '.format(start_time, end_time)
@@ -180,7 +180,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> toFloat() \
             |> mean() \
@@ -200,7 +200,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
             |> group(columns: ["service"]) \
             |> toFloat() \
             |> quantile(q: {}, column: "_value") \
@@ -215,7 +215,7 @@ def query_db(start_time, end_time, duration):
     for q in quantile:
         query = 'from(bucket: "trace") \
             |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "s" and r["_field"] == "latency" and r["service"] == "cartservice") \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
             |> group(columns: ["op"]) \
             |> toFloat() \
             |> quantile(q: {}, column: "_value") \
@@ -227,9 +227,8 @@ def query_db(start_time, end_time, duration):
                 data[service][q] = record.values['_value']
     return data
 
-def change2csv(data, i):
+def change2csv(data, i, total_row):
     rows = services.copy()
-    rows.append("total")
     row_data = []
     for k, v in data.items():
         this_row = [k]
@@ -240,27 +239,29 @@ def change2csv(data, i):
         f_csv = csv.writer(f)
         f_csv.writerow(headers)
         f_csv.writerows(row_data)
+        f_csv.writerow(total_row)
 
 def export_data(data, i):
-    data["total"] = {}
-    with open('locust_table/'+str(i)+'_stats.csv')as f:
-        reader = csv.DictReader(f)
-        rows = [row for row in reader]
-        last_row = rows[-1]
-        data["total"]["rps"] = float(last_row["Requests/s"])
-        data["total"]["avg"] = float(last_row["Average Response Time"])
-        data["total"]["0.50"] = float(last_row["50%"])
-        data["total"]["0.75"] = float(last_row["75%"])
-        data["total"]["0.90"] = float(last_row["90%"])
-        data["total"]["0.99"] = float(last_row["99%"])
-    # np.save("res/data"+str(i), data)
-    para = {}
-    for service in services:
-        para[service] = para_dic[service][i]
-    # np.save("res/param"+str(i), para)
-    change2csv(data, i)
-    # print(data)
-    # print(para)
+    total_row = ["total"]
+    with open('wrk_table/'+str(i))as f:
+        for line in f:
+            sentence = line.split()
+            if len(sentence) < 1:
+                continue
+            if sentence[0] == "Requests/sec:": # rps   
+                total_row.insert(1, sentence[1])
+            if sentence[0] == "Latency" and sentence[1] != "Distribution":  # "    Latency   674.61ms  542.39ms   2.00s    59.46%"
+                total_row.append(sentence[1]) # avg
+            if sentence[0] == "50.000%":
+                total_row.append(sentence[1]) # p50
+            if sentence[0] == "75.000%":
+                total_row.append(sentence[1]) # p75
+            if sentence[0] == "90.000%":
+                total_row.append(sentence[1]) # p90
+            if sentence[0] == "99.000%":
+                total_row.append(sentence[1]) # p99
+    change2csv(data, i, total_row)
+
 
 def run_one_set(i):
     '''
@@ -288,25 +289,17 @@ def run_one_set(i):
     start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
 
     # 获取服务接口，进行压力测试
-    # locust_ip = get_ip() # for minikube only
-    expose_ip = subprocess.Popen("exec kubectl port-forward deployment/frontend 8080:8080", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    while expose_ip.poll() is None:
-        line = expose_ip.stdout.readline()
-        line = line.strip()
-        if line == b'Forwarding from [::1]:8080 -> 8080':
-            print(line)
-            break
-    # locust_cmd = "/home/yuqingxie/.local/bin/locust -u 200 -r 20 \
-    #     -f src/loadgenerator/locustfile_original.py --headless \
-    #     --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
-    # print(locust_cmd)
-    # locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    # ret_code = locust_run.wait()
-    # print("locust exited with code ", ret_code)
+    ip = get_ip()
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c20 -d30s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R 200 " + ip
+    print(wrk_cmd)
+    wrk_record = open("wrk_table/"+str(i), mode="w")
+    wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
+    ret_code = wrk_run.wait()
+    print("wrk exited with code ", ret_code)
+    wrk_record.close()
 
     # 清除当前的部署，触发service中的数据上传
     print("cleaning deployment...")
-    expose_ip.kill()
     skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     skaffold_delete.wait()
     
