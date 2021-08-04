@@ -23,7 +23,7 @@ import time
 import grpc
 from jinja2 import Environment, FileSystemLoader, select_autoescape, TemplateError
 from google.api_core.exceptions import GoogleAPICallError
-from google.auth.exceptions import DefaultCredentialsError
+# from google.auth.exceptions import DefaultCredentialsError
 
 import demo_pb2
 import demo_pb2_grpc

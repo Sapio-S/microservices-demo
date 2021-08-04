@@ -21,7 +21,7 @@ import traceback
 from concurrent import futures
 
 
-from google.auth.exceptions import DefaultCredentialsError
+# from google.auth.exceptions import DefaultCredentialsError
 import grpc
 import demo_pb2
 import demo_pb2_grpc
@@ -101,6 +101,6 @@ if __name__ == "__main__":
     # keep alive
     try:
          while True:
-            time.sleep(10000)
+            time.sleep(3600)
     except KeyboardInterrupt:
             server.stop(0)

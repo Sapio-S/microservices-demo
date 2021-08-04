@@ -23,6 +23,7 @@ class InfluxInterceptor(ServerInterceptor):
     def close_program(self, *args):
         self.write_api.flush()
         self.client.close()
+        print(args)
         print("closing...")
         sys.exit(0)
     

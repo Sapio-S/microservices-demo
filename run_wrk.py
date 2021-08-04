@@ -290,7 +290,7 @@ def run_one_set(i):
 
     # 获取服务接口，进行压力测试
     ip = get_ip()
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c20 -d30s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R 200 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m -s /home/yuqingxie/microservices-demo/wrk/script.lua -R100 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -318,7 +318,7 @@ def run_one_set(i):
     print("\n\n\n\n")
 
 def main():
-    num_samples = 1
+    num_samples = 300
     generate_parameters(num_samples)
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):

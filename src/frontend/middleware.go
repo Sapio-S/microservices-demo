@@ -71,12 +71,12 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if v, ok := r.Context().Value(ctxKeySessionID{}).(string); ok {
 		log = log.WithField("session", v)
 	}
-	log.Debug("request started")
+	// log.Debug("request started")
 	defer func() {
-		log.WithFields(logrus.Fields{
-			"http.resp.took_us": int64(time.Since(start).Microseconds()), //test?
-			"http.resp.status":  rr.status,
-			"http.resp.bytes":   rr.b}).Debugf("request complete")
+		// log.WithFields(logrus.Fields{
+		// 	"http.resp.took_us": int64(time.Since(start).Microseconds()), //test?
+		// 	"http.resp.status":  rr.status,
+		// 	"http.resp.bytes":   rr.b}).Debugf("request complete")
 
 		p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").SetTime(time.Now())
 		// write point asynchronously

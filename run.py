@@ -112,13 +112,13 @@ def print_cmd(p):
             print(line)
 
 def get_ip():
-    # 更换部署后需要更改这个命令
-    # 此函数用来获取minikube部署中得到的网址
-    get_ip = subprocess.Popen("minikube service frontend-external", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
+    # 此函数用来获取k8s部署中cluster IP
+    get_ip = subprocess.Popen("kubectl get svc frontend", shell=True, stdout=subprocess.PIPE, stderr=sys.stderr)
     get_ip.wait()
     output = get_ip.stdout.read()
-    objs = re.search(r'.* (http://.*?) .*', str(output))
-    return objs.group(1)
+    ip = re.search(r'.* (10.*?) .*', str(output))
+    port = re.search(r'.*  (.*?)/TCP', str(output))
+    return "http://" + ip.group(1) + ":" + port.group(1)
 
 def query_db(start_time, end_time, duration):
     data = {}
@@ -236,7 +236,7 @@ def change2csv(data, i):
         for _, item in v.items():
             this_row.append(item)
         row_data.append(this_row)
-    with open('res/data'+str(i)+".csv", "w") as f:
+    with open('res/data_locust'+str(i)+".csv", "w") as f:
         f_csv = csv.writer(f)
         f_csv.writerow(headers)
         f_csv.writerows(row_data)
@@ -289,17 +289,9 @@ def run_one_set(i):
     start_timestamp = time.time() # 计算rps
 
     # 获取服务接口，进行压力测试
-    # locust_ip = get_ip() # for minikube only
-    expose_ip = subprocess.Popen("exec kubectl port-forward deployment/frontend 8080:8080", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
-    # while expose_ip.poll() is None:
-    #     line = expose_ip.stdout.readline()
-    #     line = line.strip()
-    #     if line == b'Forwarding from [::1]:8080 -> 8080':
-    #         print(line)
-    #         break
-    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 150 -r 100 \
+    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 400 -r 100 \
         -f src/loadgenerator/locustfile_original.py --headless \
-        --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
+        --run-time 5m --host " + get_ip() + " --csv=locust_table/"+str(i)
     print(locust_cmd)
     locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     ret_code = locust_run.wait()
@@ -307,7 +299,7 @@ def run_one_set(i):
 
     # 清除当前的部署，触发service中的数据上传
     print("cleaning deployment...")
-    expose_ip.kill()
+    # expose_ip.kill()
     skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     skaffold_delete.wait()
     
@@ -315,8 +307,7 @@ def run_one_set(i):
     end_timestamp = time.time() # 计算rps
 
     # 从influxDB中获取各个服务的latency与rps
-    # print(start_time, end_time)
-    data = query_db(start_time, end_time, end_timestamp - start_timestamp)
+    data = query_db(start_time, end_time, 300)
 
     # 生成报表，导出
     export_data(data, i)
