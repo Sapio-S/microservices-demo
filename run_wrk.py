@@ -25,9 +25,9 @@ org = "msra"
 bucket = "trace"
 influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token)
 
-quantile = ["0.50", '0.75', '0.90', '0.99']
+quantile = ["0.50", '0.90', '0.95', '0.99']
 
-headers = ["service", "rps","avg", "0.50", '0.75', '0.90', '0.99']
+headers = ["service", "rps","avg", "0.50", '0.90', '0.95', '0.99']
 
 # global variables
 para_dic = {} # 参数配置，以service为基本单元
@@ -101,7 +101,11 @@ def generate_parameters(num_samples):
                 service_dic[header[j]] = params[i][j]
             service_list.append(service_dic)
         para_dic[service] = service_list
-    np.save("res/param"+str(num_samples), para_dic)
+    np.save("res/param_"+str(num_samples), para_dic)
+
+def read_parameters():
+    global para_dic
+    para_dic = np.load("res/param300.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -254,10 +258,10 @@ def export_data(data, i):
                 total_row.append(sentence[1]) # avg
             if sentence[0] == "50.000%":
                 total_row.append(sentence[1]) # p50
-            if sentence[0] == "75.000%":
-                total_row.append(sentence[1]) # p75
             if sentence[0] == "90.000%":
                 total_row.append(sentence[1]) # p90
+            if sentence[0] == "95.000%":
+                total_row.append(sentence[1]) # p95
             if sentence[0] == "99.000%":
                 total_row.append(sentence[1]) # p99
     change2csv(data, i, total_row)
@@ -319,9 +323,12 @@ def run_one_set(i):
 
 def main():
     num_samples = 300
-    generate_parameters(num_samples)
+    # generate_parameters(num_samples)
+    read_parameters()
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):
+        if i < 216:
+            continue
         run_one_set(i)
 
 main()
