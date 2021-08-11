@@ -14,11 +14,11 @@ const_dic = {
         },
         "IPV4_RMEM":{
             "MAX":6291456,
-            "MIN":4096,
+            "MIN":12000,
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":20000,
         }
     },
     "cartservice":{
@@ -32,24 +32,24 @@ const_dic = {
         },
         "IPV4_RMEM":{
             "MAX":6291456,
-            "MIN":4096,
+            "MIN":30000,
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":30000,
         },
         # note: 以下为redis的配置，由于redis在cartservice中初始化，因此将参数移动到了这里
         "hash_max_ziplist_entries":{
             "MAX":4096,
-            "MIN":32,
+            "MIN":64,
         },
         "maxmemory_samples":{
             "MAX":10,
             "MIN":1,
         },
         "maxmemory":{
-            "MAX":16,
-            "MIN":0,
+            "MAX":200,
+            "MIN":10,
         },
     },
     "checkoutservice":{
@@ -59,7 +59,7 @@ const_dic = {
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":110,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -67,7 +67,7 @@ const_dic = {
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":10000,
         }
     },
     "currencyservice":{
@@ -77,11 +77,11 @@ const_dic = {
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":110,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
-            "MIN":4096,
+            "MIN":40000,
         },
         "IPV4_WMEM":{
             "MAX":4194304,
@@ -107,7 +107,7 @@ const_dic = {
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":10000,
         }
     },
     "frontend":{
@@ -139,7 +139,7 @@ const_dic = {
         },
         "IPV4_RMEM":{
             "MAX":6291456,
-            "MIN":4096,
+            "MIN":80000,
         },
         "IPV4_WMEM":{
             "MAX":4194304,
@@ -161,17 +161,17 @@ const_dic = {
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":15000,
         }
     },
     "recommendationservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":180,
         },
         "MEMORY_LIMIT":{ # 450, request 220
             "MAX":800,
-            "MIN":300,
+            "MIN":400,
         },
         "MAX_WORKERS":{
             "MAX":20,
@@ -183,7 +183,7 @@ const_dic = {
         },
         "IPV4_RMEM":{
             "MAX":6291456,
-            "MIN":4096,
+            "MIN":20000,
         },
         "IPV4_WMEM":{
             "MAX":4194304,
@@ -205,7 +205,7 @@ const_dic = {
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":10000,
         },
     },
     "shippingservice":{
@@ -223,7 +223,7 @@ const_dic = {
         },
         "IPV4_WMEM":{
             "MAX":4194304,
-            "MIN":4096,
+            "MIN":10000,
         }
     },
 }

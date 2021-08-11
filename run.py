@@ -25,9 +25,9 @@ org = "msra"
 bucket = "trace"
 influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token)
 
-quantile = ["0.50", '0.75', '0.90', '0.99']
+quantile = ["0.50", '0.90', '0.95', '0.99']
 
-headers = ["service", "rps","avg", "0.50", '0.75', '0.90', '0.99']
+headers = ["service", "rps","avg", "0.50", '0.90', '0.95', '0.99']
 
 # global variables
 para_dic = {} # 参数配置，以service为基本单元
@@ -101,7 +101,11 @@ def generate_parameters(num_samples):
                 service_dic[header[j]] = params[i][j]
             service_list.append(service_dic)
         para_dic[service] = service_list
-    np.save("res/param", para_dic)
+    np.save("res/param_"+str(num_samples), para_dic)
+
+def read_parameters():
+    global para_dic
+    para_dic = np.load("res/param_5.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -227,40 +231,41 @@ def query_db(start_time, end_time, duration):
                 data[service][q] = record.values['_value']
     return data
 
-def change2csv(data, i):
+def change2csv(data, i, total_row):
     rows = services.copy()
-    rows.append("total")
     row_data = []
     for k, v in data.items():
         this_row = [k]
         for _, item in v.items():
             this_row.append(item)
         row_data.append(this_row)
-    with open('res/data_locust'+str(i)+".csv", "w") as f:
+    with open('res/data'+str(i)+".csv", "w") as f:
         f_csv = csv.writer(f)
         f_csv.writerow(headers)
         f_csv.writerows(row_data)
+        f_csv.writerow(total_row)
 
 def export_data(data, i):
-    data["total"] = {}
-    with open('locust_table/'+str(i)+'_stats.csv')as f:
-        reader = csv.DictReader(f)
-        rows = [row for row in reader]
-        last_row = rows[-1]
-        data["total"]["rps"] = float(last_row["Requests/s"])
-        data["total"]["avg"] = float(last_row["Average Response Time"])
-        data["total"]["0.50"] = float(last_row["50%"])
-        data["total"]["0.75"] = float(last_row["75%"])
-        data["total"]["0.90"] = float(last_row["90%"])
-        data["total"]["0.99"] = float(last_row["99%"])
-    np.save("res/data"+str(i), data)
-    para = {}
-    for service in services:
-        para[service] = para_dic[service][i]
-    # np.save("res/param"+str(i), para)
-    change2csv(data, i)
-    # print(data)
-    # print(para)
+    total_row = ["total"]
+    with open('wrk_table/'+str(i))as f:
+        for line in f:
+            sentence = line.split()
+            if len(sentence) < 1:
+                continue
+            if sentence[0] == "Requests/sec:": # rps   
+                total_row.insert(1, sentence[1])
+            if sentence[0] == "Latency" and sentence[1] != "Distribution":  # "    Latency   674.61ms  542.39ms   2.00s    59.46%"
+                total_row.append(sentence[1]) # avg
+            if sentence[0] == "50.000%":
+                total_row.append(sentence[1]) # p50
+            if sentence[0] == "90.000%":
+                total_row.append(sentence[1]) # p90
+            if sentence[0] == "95.000%":
+                total_row.append(sentence[1]) # p95
+            if sentence[0] == "99.000%":
+                total_row.append(sentence[1]) # p99
+    change2csv(data, i, total_row)
+
 
 def run_one_set(i):
     '''
@@ -286,42 +291,43 @@ def run_one_set(i):
     print("successfully deployed!")
 
     start_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    start_timestamp = time.time() # 计算rps
 
     # 获取服务接口，进行压力测试
-    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 400 -r 100 \
+    ip = get_ip()
+    locust_cmd = "/home/yuqingxie/.local/bin/locust -u 500 -r 50 \
         -f src/loadgenerator/locustfile_original.py --headless \
-        --run-time 5m --host " + get_ip() + " --csv=locust_table/"+str(i)
+        --run-time 5m --host "+ip+" --csv=locust_table/"+str(i)
     print(locust_cmd)
+    time.sleep(5)
+    # start_timestamp = time.time() # 计算rps
     locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     ret_code = locust_run.wait()
     print("locust exited with code ", ret_code)
 
     # 清除当前的部署，触发service中的数据上传
     print("cleaning deployment...")
-    # expose_ip.kill()
     skaffold_delete = subprocess.Popen("skaffold delete", shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     skaffold_delete.wait()
     
     end_time = datetime.now(timezone.utc).astimezone().isoformat() # 用来查询influxDB中压测时间段内生成的数据
-    end_timestamp = time.time() # 计算rps
 
     # 从influxDB中获取各个服务的latency与rps
-    data = query_db(start_time, end_time, 300)
+    start_query = time.time()
+    data = query_db(start_time, end_time, 300) # for 5 min
+    end_query = time.time()
+    print("query takes", end_query - start_query, "seconds")
 
     # 生成报表，导出
     export_data(data, i)
-
-    # # 为了节省空间，清空locust_table文件夹
-    # os.remove("locust_table")
-    # os.mkdir("locust_table")
 
     print("finished tested parameter set", i)
     print("\n\n\n\n")
 
 def main():
-    num_samples = 1
+    num_samples = 300
     generate_parameters(num_samples)
+    # read_parameters()
+    # generate_yaml(3)
     print("generated parameters for", num_samples, "groups!")
     for i in range(num_samples):
         run_one_set(i)
