@@ -20,3 +20,4 @@ release/wi-kubernetes-manifests.yaml
 /res*
 /wrk_table
 /wrk_table*
+generated-script.lua
