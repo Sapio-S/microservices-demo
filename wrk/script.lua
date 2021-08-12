@@ -81,11 +81,11 @@ local function checkout()
 end
 
 request = function()
-  local index_ratio      = 0.05
+  local index_ratio         = 0.05
   local setCurrency_ratio   = 0.10
-  local browseProduct_ratio        = 0.50
-  local viewCart_ratio     = 0.15
-  local add2cart_ratio = 0.10
+  local browseProduct_ratio = 0.50
+  local viewCart_ratio      = 0.15
+  local add2cart_ratio      = 0.10
 
   local coin = math.random()
   if coin < index_ratio then
