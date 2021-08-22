@@ -12,4 +12,4 @@ minikube start --cpus=4 --memory 4096 --disk-size 32g --extra-config="kubelet.al
 
 kubectl get svc frontend
 
-/home/yuqingxie/.local/bin/locust -u 500 -r 50 -f src/loadgenerator/locustfile_original.py --headless --run-time 5m --host http://10.101.207.56:80 --csv=locust_table/test
+/home/yuqingxie/.local/bin/locust -u 500 -r 50 -f src/loadgenerator/locustfile_original.py --headless --run-time 5m --host http://10.110.77.252:80 --csv=locust_table/test

@@ -48,6 +48,7 @@ var (
 	log *logrus.Logger
 	client influxdb2.Client
 	writeAPI api.WriteAPI
+	podName = os.Getenv("HOSTNAME")
 )
 
 func init() {
@@ -92,7 +93,7 @@ func serverInterceptor(ctx context.Context,
 	end := time.Now()
 	duration := end.Sub(start).Microseconds()
 
-	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).SetTime(time.Now())
+	p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", duration).AddTag("service", "checkoutservice").AddTag("method", info.FullMethod).AddTag("podname", podName).SetTime(time.Now())
 	// write point asynchronously
 	writeAPI.WritePoint(p)
 	return h, err

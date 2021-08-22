@@ -26,10 +26,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"go.opencensus.io/plugin/ocgrpc"
+	// "go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/plugin/ochttp/propagation/b3"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 
 	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
@@ -178,10 +179,13 @@ func mustMapEnv(target *string, envKey string) {
 
 func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
-	*conn, err = grpc.DialContext(ctx, addr,
+	*conn, err = grpc.DialContext(ctx, "dns:///"+addr,
 		grpc.WithInsecure(),
-		grpc.WithTimeout(time.Second*3),
-		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+		grpc.WithBalancerName(roundrobin.Name),
+		grpc.WithBlock(),
+		// grpc.WithTimeout(time.Second*3),
+		// grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+	)
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}
