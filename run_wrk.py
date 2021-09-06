@@ -356,7 +356,7 @@ def run_one_set(i):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -385,18 +385,18 @@ def run_one_set(i):
     return start_time, end_time
 
 def generate_wrk():
+    former = np.random.random() / 20 * 3 + 0.8 # [0.8, 0.95]
+    add2cart_ratio = np.random.random() * (1 - former)
+
     index_ratio = np.random.random() / 10 # [0, 0.1]
     setCurrency_ratio = np.random.random() / 5 # [0, 0,2]
     browseProduct_ratio = np.random.random() / 2 + 0.25 # [0.25, 0.75]
     viewCart_ratio = np.random.random() / 3 # [0, 0.33]
-    add2cart_ratio = np.random.random() / 5 # [0, 0.2]
-    checkout_ratio = np.random.random() / 5 # [0, 0.2]
-    s = index_ratio+setCurrency_ratio+browseProduct_ratio+viewCart_ratio+add2cart_ratio+checkout_ratio
-    index_ratio /= s
-    setCurrency_ratio /= s
-    browseProduct_ratio /= s
-    viewCart_ratio /= s
-    add2cart_ratio /= s
+    s = index_ratio+setCurrency_ratio+browseProduct_ratio+viewCart_ratio
+    index_ratio = index_ratio * former / s
+    setCurrency_ratio = setCurrency_ratio* former / s
+    browseProduct_ratio = browseProduct_ratio* former / s
+    viewCart_ratio = viewCart_ratio* former / s
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader("wrk"))
     temp = env.get_template("script.lua.tpl")
@@ -414,7 +414,7 @@ def generate_wrk():
     return index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio
 
 def main():
-    num_samples = 50
+    num_samples = 300
     generate_parameters(num_samples)
     # read_parameters()
     print("generated parameters for", num_samples, "groups!")

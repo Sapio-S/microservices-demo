@@ -21,3 +21,4 @@ release/wi-kubernetes-manifests.yaml
 /wrk_table
 /wrk_table*
 generated-script.lua
+*_collection
