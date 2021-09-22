@@ -6,11 +6,11 @@ const_dic = {
         },
         "CPU_LIMIT":{ # 300, request 200
             "MAX":500,
-            "MIN":250,
+            "MIN":200,
         },
         "MEMORY_LIMIT":{ # 300, request 180
             "MAX":500,
-            "MIN":250,
+            "MIN":180,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -24,11 +24,11 @@ const_dic = {
     "cartservice":{
         "CPU_LIMIT":{ # 300, request 200
             "MAX":500,
-            "MIN":250, 
+            "MIN":200, 
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -54,12 +54,12 @@ const_dic = {
     },
     "checkoutservice":{
         "CPU_LIMIT":{ # 200, request 100
-            "MAX":400,
-            "MIN":150,
+            "MAX":600,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":110,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -73,11 +73,11 @@ const_dic = {
     "currencyservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":110,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -91,11 +91,11 @@ const_dic = {
     "emailservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "MAX_WORKERS":{
             "MAX":20,
@@ -112,12 +112,12 @@ const_dic = {
     },
     "frontend":{
         "CPU_LIMIT":{ # 200, request 100
-            "MAX":400,
-            "MIN":150,
+            "MAX":600,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -131,11 +131,11 @@ const_dic = {
     "paymentservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -149,11 +149,11 @@ const_dic = {
     "productcatalogservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -166,15 +166,15 @@ const_dic = {
     },
     "recommendationservice":{
         "CPU_LIMIT":{ # 200, request 100
-            "MAX":400,
-            "MIN":180,
+            "MAX":600,
+            "MIN":150,
         },
         "MEMORY_LIMIT":{ # 450, request 220
             "MAX":800,
-            "MIN":400,
+            "MIN":250,
         },
         "MAX_WORKERS":{
-            "MAX":20,
+            "MAX":30,
             "MIN":5,
         },
         "MAX_RESPONSE":{
@@ -193,11 +193,11 @@ const_dic = {
     "redis":{
         "CPU_LIMIT":{ # 125, request 70
             "MAX":350,
-            "MIN":120,
+            "MIN":70,
         },
         "MEMORY_LIMIT":{ # 256, request 200
             "MAX":450,
-            "MIN":250,
+            "MIN":200,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
@@ -211,11 +211,11 @@ const_dic = {
     "shippingservice":{
         "CPU_LIMIT":{ # 200, request 100
             "MAX":400,
-            "MIN":150,
+            "MIN":100,
         },
         "MEMORY_LIMIT":{ # 128, request 64
             "MAX":250,
-            "MIN":100,
+            "MIN":64,
         },
         "IPV4_RMEM":{
             "MAX":6291456,
