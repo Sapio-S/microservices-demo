@@ -10,7 +10,7 @@ minikube start --cpus=4 --memory 4096 --disk-size 32g --extra-config="kubelet.al
 
 /home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R100 http://10.96.142.239:80 --timeout 5s
 
-/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 http://10.111.122.44:80 --timeout 10s
+/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 http://10.98.232.34 --timeout 10s
 
 kubectl get svc frontend
 
