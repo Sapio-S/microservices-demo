@@ -10,10 +10,11 @@ import sys
 import signal
 class InfluxInterceptor(ServerInterceptor):
 
-    def __init__(self, name):
+    def __init__(self, name, podName):
         signal.signal(signal.SIGINT, self.close_program)
         signal.signal(signal.SIGTERM, self.close_program)
         self.service = name
+        self.pod = podName
         self.client = InfluxDBClient(url="http://10.0.0.29:8086", 
                                         token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==", 
                                         org="msra")
@@ -39,6 +40,7 @@ class InfluxInterceptor(ServerInterceptor):
             .tag("service", self.service) \
             .field("latency", latency) \
             .tag("method", method_name) \
+            .tag("podname", self.pod) \
             .time(datetime.utcnow(), WritePrecision.NS)
         self.write_api.write(bucket="trace", record=p)
         return res

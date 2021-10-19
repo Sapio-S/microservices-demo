@@ -68,6 +68,8 @@ if __name__ == "__main__":
     logger.info("initializing recommendationservice")
 
     port = os.environ.get('PORT', "8080")
+    podName = os.environ.get("HOSTNAME")
+    # print(podName)
     MAX_RESPONSE = int(os.environ.get('MAX_RESPONSE'))
     MAX_WORKERS = int(os.environ.get('MAX_WORKERS'))
     print(MAX_WORKERS, MAX_RESPONSE)
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     # create gRPC server
     # influxInterceptor = InfluxInterceptor("recommendation server")
     # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),interceptors=(influxInterceptor,))
-    interceptors = [InfluxInterceptor("recommendationservice")]
+    interceptors = [InfluxInterceptor("recommendationservice", podName)]
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
         interceptors=interceptors

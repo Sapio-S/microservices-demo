@@ -84,11 +84,21 @@ def check_quality():
     # invalid_list = []
     cnt = 0
     para = {}
-    para_ori = np.load("res_merged_new/param.npy", allow_pickle=True).item()
+    para_ori = np.load("res/param_600.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
-    for i in range (900):
-        with open("wrk_rps_merged/"+str(i)) as f:
+    for i in range (600):
+
+        # check if we miss any data
+        data = pd.read_csv("res/data"+str(i)+".csv")
+        try:
+            for row in range(18):
+                # data.loc[row]用来取出一个service对应的行
+                r = data.loc[row]
+        except:
+            continue
+
+        with open("wrk_table/"+str(i)) as f:
             text = f.read()
             timeout = re.search(r'.* timeout (\d*?)\s.*', str(text))
             response500 = re.search(r'.*Non-2xx or 3xx responses: (\d*?)\s.*', str(text))
@@ -106,15 +116,18 @@ def check_quality():
                     print(i, "timeout", num)
                     continue
 
+            if i == 283:
+                continue # TODO: this one is not usable
+            
             # merge data
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res_merged_new/data"+str(i)+".csv", "res_clean_rps/data"+str(cnt)+".csv")
+            shutil.copy("res/data"+str(i)+".csv", "res_2scale/data"+str(cnt)+".csv")
             cnt += 1
 
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_clean_rps/param.npy", para)
+    np.save("res_2scale/param.npy", para)
     return cnt
 
 
@@ -122,7 +135,7 @@ def check_quality():
 def check_outlier(length):
     p90 = []
     for i in range(length):
-        data = pd.read_csv("res_clean_rps/data"+str(i)+".csv")
+        data = pd.read_csv("res_2scale/data"+str(i)+".csv")
         for row in range(14):
             # data.loc[row]用来取出一个service对应的行
             r = data.loc[row]
@@ -145,7 +158,7 @@ def rm_outlier(length):
     '''
     cnt = 0
     para = {}
-    para_ori = np.load("res_clean_rps/param.npy", allow_pickle=True).item()
+    para_ori = np.load("res_2scale/param.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
     for i in range (length):
@@ -154,12 +167,12 @@ def rm_outlier(length):
         else:
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res_clean_rps/data"+str(i)+".csv", "res_rm_outlier_0909/data"+str(cnt)+".csv")
+            shutil.copy("res_2scale/data"+str(i)+".csv", "res_2scale_final/data"+str(cnt)+".csv")
             cnt += 1
             
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_rm_outlier_0909/param.npy", para)
+    np.save("res_2scale_final/param.npy", para)
 
 
 def run():
