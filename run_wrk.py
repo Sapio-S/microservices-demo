@@ -200,24 +200,24 @@ def query_db(start_time, end_time, duration):
                 except:
                     data[service]["avg"] = 0
     
-    # get rps of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["op"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['op']
-                if service is None:
-                    continue
-                try:
-                    data[service]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data[service]["rps"] = 0
+    # # get rps of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["op"]) \
+    #         |> count() \
+    #         '.format(start_time, end_time)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['op']
+    #             if service is None:
+    #                 continue
+    #             try:
+    #                 data[service]["rps"] = float(record.values['_value'] / duration)
+    #             except:
+    #                 data[service]["rps"] = 0
 
     # get p50, p75, p90, p99 latency of a service
     for q in quantile:
@@ -268,47 +268,47 @@ def query_db(start_time, end_time, duration):
                 service = record.values['op']
                 data[service][q] = record.values['_value']
     
-    pod_name = {}
-    cnt = 0
-    # get rps of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["podname"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                if service not in pod_name:
-                    pod_name[service] = cnt
-                    data["recommendation_pod"+str(pod_name[service])] = {}
-                    cnt += 1
-                try:
-                    data["recommendation_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data["recommendation_pod"+str(pod_name[service])]["rps"] = 0
+    # pod_name = {}
+    # cnt = 0
+    # # get rps of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["podname"]) \
+    #         |> count() \
+    #         '.format(start_time, end_time)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['podname']
+    #             if service is None:
+    #                 continue
+    #             if service not in pod_name:
+    #                 pod_name[service] = cnt
+    #                 data["recommendation_pod"+str(pod_name[service])] = {}
+    #                 cnt += 1
+    #             try:
+    #                 data["recommendation_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
+    #             except:
+    #                 data["recommendation_pod"+str(pod_name[service])]["rps"] = 0
     
-    # get p50, p75, p90, p99 latency of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["podname"]) \
-            |> toFloat() \
-            |> quantile(q: {}, column: "_value") \
-            '.format(start_time, end_time, q)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
+    # # get p50, p75, p90, p99 latency of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["podname"]) \
+    #         |> toFloat() \
+    #         |> quantile(q: {}, column: "_value") \
+    #         '.format(start_time, end_time, q)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['podname']
+    #             if service is None:
+    #                 continue
+    #             data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
     
     pod_name = {}
     cnt = 0
@@ -352,8 +352,7 @@ def query_db(start_time, end_time, duration):
                     continue
                 data["checkout_pod"+str(pod_name[service])][q] = record.values['_value']
     return data
-    
-    return data
+
 
 def change2csv(data, i, total_row):
     rows = services.copy()
@@ -484,8 +483,8 @@ def main():
     time_zone = []
     wrk_para = []
     for i in range(num_samples):
-        index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
-        wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
+        # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
+        # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
         time_zone.append([start, end])
     np.save("res/time_zone", time_zone)
