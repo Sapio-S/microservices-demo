@@ -133,7 +133,7 @@ function getNanoSecTime() {
   var hrTime = process.hrtime();
   return hrTime[0] * 1000000000 + hrTime[1];
 }
-const token = 'pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==';
+const token = 'vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ==';
 const org = 'msra';
 const bucket = 'trace';
 const client = new InfluxDB({url: 'http://10.0.0.29:8086', token: token})

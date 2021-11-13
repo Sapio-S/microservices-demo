@@ -16,7 +16,7 @@ class InfluxInterceptor(ServerInterceptor):
         self.service = name
         self.pod = podName
         self.client = InfluxDBClient(url="http://10.0.0.29:8086", 
-                                        token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==", 
+                                        token = "vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ==", 
                                         org="msra")
         self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
                                                                         flush_interval=60_000))

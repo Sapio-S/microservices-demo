@@ -28,7 +28,7 @@ public class InfluxInterceptor implements ServerInterceptor {
 
   private static final Logger logger = Logger.getLogger(InfluxInterceptor.class.getName());
 
-  private static String token = "pNFkiKKMTEVV9fYn-vk21om5hGpbH1lwbnuCsengK0RagjE48468gcSerxQILPZcVTRrrGK4iJMtPRsW87kvqA==";
+  private static String token = "vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ==";
   private static String org = "msra";
   private static String bucket = "trace";
   private static InfluxDBClient influxDBClient;
