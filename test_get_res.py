@@ -2,22 +2,35 @@ import csv
 import re
 
 # print("pred")
-# for train_size in [10,25,50,100,150,200,300,400]:
+# for train_size in [10,25,50,100]:
 #     print(train_size)
-#     for i in range(5):
-#         with open('test_2scale/DNN_2scale_'+str(train_size)+"_"+str(i)) as f:
+#     for i in range(10):
+#         with open('test_checkout_150/GP_2checkout_'+str(train_size)+"_"+str(i)) as f:
 #             text = f.read()
 #             sentence = text.split()
 #             print(sentence[-1])
 #     print()
 
-print("real")
-for train_size in [10,25,50,100,150,200,300,400]:
+# print("real")
+# for train_size in [10,25,50,100]:
+#     print(train_size)
+#     for i in range(10):
+#         with open('test_res/dataGP_2checkout_'+str(train_size)+"_"+str(i)+".csv") as csvfile:
+#             reader = csv.DictReader(csvfile)
+#             for row in reader:
+#                 if row["service"] == "frontend":
+#                     print(row["0.90"])
+#     print()
+
+print("MAE")
+for train_size in [10,25,50,100]:
     print(train_size)
-    for i in range(5):
-        with open('test_res/dataDNN_2scale_'+str(train_size)+"_"+str(i)+".csv") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row["service"] == "frontend":
-                    print(row["0.90"])
+    for i in range(10):
+        with open('test_checkout_150/fluxion_2checkout_'+str(train_size)+"_"+str(i)) as f:
+            text = f.read()
+            MAE = re.search(r'test MAE is (\d+(\.\d+)?)[.\n]*', str(text))
+            if MAE:
+                print(MAE.group(1))
+                # mae = float(MAE.group(1))
+                # print(mae)
     print()

@@ -411,13 +411,13 @@ def main():
     #         name = "res_fluxion_"+str(train)+"_"+str(i)
     #         total_files.append(["test_checkout/"+str(name)+".npy", name])
     for train in [10, 25, 50, 100, 150, 200, 300]:
-        for i in range(5):
+        for i in range(5,10):
             name = "DNN_2recom_"+str(train)+"_"+str(i)
-            total_files.append(["test_2recom/"+str(name)+".npy", name])
+            total_files.append(["test_2recom_2/"+str(name)+".npy", name])
             name = "fluxion_2recom_"+str(train)+"_"+str(i)
-            total_files.append(["test_2recom/"+str(name)+".npy", name])            
+            total_files.append(["test_2recom_2/"+str(name)+".npy", name])            
             name = "GP_2recom_"+str(train)+"_"+str(i)
-            total_files.append(["test_2recom/"+str(name)+".npy", name])
+            total_files.append(["test_2recom_2/"+str(name)+".npy", name])
     # for i in range(len(fluxion_files)):
     #     name = "res_DNN_"+str(train)+"_"+str(i)
     #     total_files.append(["test_DNN/res_DNN_"+str(name)+".npy", name)

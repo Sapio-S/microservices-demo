@@ -13,7 +13,7 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 # from kubernetes import client, config
 
-from consts import const_dic
+from consts import consts
 # constants
 max_retry = 5
 
@@ -87,7 +87,7 @@ def sample_selection(num_samples, x_bounds):
 
 def generate_parameters(num_samples):
     for service in services:
-        possible_para = const_dic[service]
+        possible_para = consts[service]
         boundaries = []
         header = []
         service_list = []
@@ -103,9 +103,12 @@ def generate_parameters(num_samples):
         para_dic[service] = service_list
     np.save("res/param_"+str(num_samples), para_dic)
 
+# def read_parameters():
+#     para_dic = np.load("res/param_300.npy", allow_pickle=True).item()
+
 def read_parameters():
     global para_dic
-    para_dic = np.load("res/param300.npy", allow_pickle=True).item()
+    para_dic = np.load("res/param_300.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -418,7 +421,7 @@ def run_one_set(i):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R150 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -476,15 +479,15 @@ def generate_wrk():
     return index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio
 
 def main():
-    num_samples = 1
+    num_samples = 150
     generate_parameters(num_samples)
     # read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
     wrk_para = []
     for i in range(num_samples):
-        # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
-        # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
+        index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
+        wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
         time_zone.append([start, end])
     np.save("res/time_zone", time_zone)

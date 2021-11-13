@@ -1,4 +1,4 @@
-const_dic = {
+consts = {
     "adservice":{
         "MAX_ADS_TO_SERVE":{
             "MAX":5,

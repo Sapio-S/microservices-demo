@@ -84,15 +84,14 @@ def check_quality():
     # invalid_list = []
     cnt = 0
     para = {}
-    para_ori = np.load("res/param_600.npy", allow_pickle=True).item()
+    para_ori = np.load("res/param_300.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
-    for i in range (600):
-
+    for i in range (300):
         # check if we miss any data
         data = pd.read_csv("res/data"+str(i)+".csv")
         try:
-            for row in range(18):
+            for row in range(16):
                 # data.loc[row]用来取出一个service对应的行
                 r = data.loc[row]
         except:
@@ -116,18 +115,18 @@ def check_quality():
                     print(i, "timeout", num)
                     continue
 
-            if i == 283:
-                continue # TODO: this one is not usable
+            # if i == 283:
+            #     continue # TODO: this one is not usable
             
             # merge data
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res/data"+str(i)+".csv", "res_2scale/data"+str(cnt)+".csv")
+            shutil.copy("res/data"+str(i)+".csv", "res_2checkout2/data"+str(cnt)+".csv")
             cnt += 1
 
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_2scale/param.npy", para)
+    np.save("res_2checkout2/param.npy", para)
     return cnt
 
 
@@ -135,7 +134,7 @@ def check_quality():
 def check_outlier(length):
     p90 = []
     for i in range(length):
-        data = pd.read_csv("res_2scale/data"+str(i)+".csv")
+        data = pd.read_csv("res_2checkout2/data"+str(i)+".csv")
         for row in range(14):
             # data.loc[row]用来取出一个service对应的行
             r = data.loc[row]
@@ -158,7 +157,7 @@ def rm_outlier(length):
     '''
     cnt = 0
     para = {}
-    para_ori = np.load("res_2scale/param.npy", allow_pickle=True).item()
+    para_ori = np.load("res_2checkout2/param.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
     for i in range (length):
@@ -167,12 +166,12 @@ def rm_outlier(length):
         else:
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res_2scale/data"+str(i)+".csv", "res_2scale_final/data"+str(cnt)+".csv")
+            shutil.copy("res_2checkout2/data"+str(i)+".csv", "res_2checkout2_final/data"+str(cnt)+".csv")
             cnt += 1
             
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_2scale_final/param.npy", para)
+    np.save("res_2checkout2_final/param.npy", para)
 
 
 def run():

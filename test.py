@@ -13,7 +13,6 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 # from kubernetes import client, config
 
-from consts import const_dic
 # constants
 max_retry = 5
 
@@ -306,7 +305,7 @@ def run_one_set(i, param):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R150 " + ip
     print(wrk_cmd)
     wrk_record = open("test_res/"+i, mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -349,29 +348,29 @@ def main():
     #     for i in range(5):
     #         name = "res_fluxion_"+str(train)+"_"+str(i)
     #         total_files.append(["test_checkout/"+str(name)+".npy", name])
-    for train in [10, 25, 50, 100, 150, 200, 300, 450, 600]:
-        for i in range(5):
-            name = "dnn_2checkout_"+str(train)+"_"+str(i)
-            total_files.append(["test_fluxion_2check/"+str(name)+".npy", name])
+
+    for train in [10, 25, 50, 100]:
+        for i in range(10):
             # name = "DNN_2checkout_"+str(train)+"_"+str(i)
-            # total_files.append(["test_1028/"+str(name)+".npy", name])
-    for i in range(5):
-        name = "GP_2checkout_"+str(600)+"_"+str(i)
-        total_files.append(["test_1028/"+str(name)+".npy", name])
-        name = "DNN_2checkout_"+str(600)+"_"+str(i)
-        total_files.append(["test_1028/"+str(name)+".npy", name])
+            # total_files.append(["test_2checkout_3/"+str(name)+".npy", name])
+            name = "fluxion_2checkout_"+str(train)+"_"+str(i)
+            total_files.append(["test_checkout_150/"+str(name)+".npy", name])            
+            name = "GP_2checkout_"+str(train)+"_"+str(i)
+            total_files.append(["test_checkout_150/"+str(name)+".npy", name])
+    
     # for i in range(len(fluxion_files)):
     #     name = "res_DNN_"+str(train)+"_"+str(i)
     #     total_files.append(["test_DNN/res_DNN_"+str(name)+".npy", name)
     #     total_files.append(["test_GP/"+GP_files[i],GP_files[i][:-4]])
-    
+    # name = "DNN_2checkout_200_8"
+    # total_files.append(["test_2checkout_2/"+str(name)+".npy", name])
     for files in total_files:
         param = np.load(files[0], allow_pickle = True).item()
         start,end = run_one_set(files[1], param)
         time_zone.append([start, end])
     
-    np.save("test_res/time_zone2", time_zone)
-    print(total_files)
-    np.save("test_res/file_sequence2", total_files)
+    # np.save("test_res/time_zone2", time_zone)
+    # print(total_files)
+    # np.save("test_res/file_sequence2", total_files)
 
 main()

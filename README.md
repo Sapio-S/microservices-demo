@@ -19,5 +19,5 @@ kubectl get svc frontend
 full set:
 skaffold run --default-repo=sapios
 kubectl get svc frontend
-/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 http://10.106.153.19 --timeout 10s
+/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 5s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 http://10.97.141.102 --timeout 10s
 skaffold delete

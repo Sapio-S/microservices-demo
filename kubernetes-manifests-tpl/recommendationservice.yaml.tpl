@@ -17,7 +17,6 @@ kind: Deployment
 metadata:
   name: recommendationservice
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app: recommendationservice
@@ -69,7 +68,7 @@ kind: Service
 metadata:
   name: recommendationservice
 spec:
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: recommendationservice
   ports:
