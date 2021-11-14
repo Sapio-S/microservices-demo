@@ -25,3 +25,4 @@ generated-script.lua
 wrk_collection*/
 test*/
 dataset*
+/download
