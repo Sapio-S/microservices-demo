@@ -15,7 +15,7 @@ class InfluxInterceptor(ServerInterceptor):
         signal.signal(signal.SIGTERM, self.close_program)
         self.service = name
         self.client = InfluxDBClient(url="http://10.0.0.29:8086", 
-                                        token = "vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ==", 
+                                        token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ==", 
                                         org="msra")
         self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
                                                                         flush_interval=60_000))

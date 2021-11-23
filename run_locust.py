@@ -20,7 +20,7 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ=="
+token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
 org = "msra"
 bucket = "trace"
 influxclient = InfluxDBClient(url="http://localhost:8086", token=token)

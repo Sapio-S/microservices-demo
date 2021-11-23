@@ -16,14 +16,13 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from consts import consts
 # constants
 max_retry = 5
-
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
-
-token = "vcE9CCcTfVMFlYP6EQecuWys2VKfq_v59_FzR8YPNW0ScWUomNLlcB0_gzBIcZAfM0mBSFyj9Qf1kIofdxi-gQ=="
+token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token)
+influxclient = InfluxDBClient(url="http://localhost:8086", token=token, org=org)
+# influxclient = InfluxDBClient(url="http://10.0.0.33:8086", token=token)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
 
@@ -203,24 +202,24 @@ def query_db(start_time, end_time, duration):
                 except:
                     data[service]["avg"] = 0
     
-    # get rps of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["op"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['op']
-                if service is None:
-                    continue
-                try:
-                    data[service]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data[service]["rps"] = 0
+    # # get rps of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["op"]) \
+    #         |> count() \
+    #         '.format(start_time, end_time)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['op']
+    #             if service is None:
+    #                 continue
+    #             try:
+    #                 data[service]["rps"] = float(record.values['_value'] / duration)
+    #             except:
+    #                 data[service]["rps"] = 0
 
     # get p50, p75, p90, p99 latency of a service
     for q in quantile:
@@ -271,47 +270,47 @@ def query_db(start_time, end_time, duration):
                 service = record.values['op']
                 data[service][q] = record.values['_value']
     
-    pod_name = {}
-    cnt = 0
-    # get rps of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["podname"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                if service not in pod_name:
-                    pod_name[service] = cnt
-                    data["recommendation_pod"+str(pod_name[service])] = {}
-                    cnt += 1
-                try:
-                    data["recommendation_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data["recommendation_pod"+str(pod_name[service])]["rps"] = 0
+    # pod_name = {}
+    # cnt = 0
+    # # get rps of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["podname"]) \
+    #         |> count() \
+    #         '.format(start_time, end_time)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['podname']
+    #             if service is None:
+    #                 continue
+    #             if service not in pod_name:
+    #                 pod_name[service] = cnt
+    #                 data["recommendation_pod"+str(pod_name[service])] = {}
+    #                 cnt += 1
+    #             try:
+    #                 data["recommendation_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
+    #             except:
+    #                 data["recommendation_pod"+str(pod_name[service])]["rps"] = 0
     
-    # get p50, p75, p90, p99 latency of recommendation pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
-            |> group(columns: ["podname"]) \
-            |> toFloat() \
-            |> quantile(q: {}, column: "_value") \
-            '.format(start_time, end_time, q)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
+    # # get p50, p75, p90, p99 latency of recommendation pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "recommendationservice") \
+    #         |> group(columns: ["podname"]) \
+    #         |> toFloat() \
+    #         |> quantile(q: {}, column: "_value") \
+    #         '.format(start_time, end_time, q)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['podname']
+    #             if service is None:
+    #                 continue
+    #             data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
     
     # pod_name = {}
     # cnt = 0
@@ -421,7 +420,7 @@ def run_one_set(i):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R150 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c50 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R150 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -479,18 +478,18 @@ def generate_wrk():
     return index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio
 
 def main():
-    num_samples = 700
+    num_samples = 200
     generate_parameters(num_samples)
     # read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
-    wrk_para = []
+    # wrk_para = []
     for i in range(num_samples):
-        index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
-        wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
+        # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
+        # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
         time_zone.append([start, end])
     np.save("res/time_zone", time_zone)
-    np.save("res/wrk_para", wrk_para)
+    # np.save("res/wrk_para", wrk_para)
 
 main()

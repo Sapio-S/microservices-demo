@@ -87,11 +87,11 @@ def check_quality():
     para_ori = np.load("res/param_300.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
-    for i in range (300):
+    for i in range (190):
         # check if we miss any data
         data = pd.read_csv("res/data"+str(i)+".csv")
         try:
-            for row in range(16):
+            for row in range(14):
                 # data.loc[row]用来取出一个service对应的行
                 r = data.loc[row]
         except:
@@ -121,12 +121,12 @@ def check_quality():
             # merge data
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res/data"+str(i)+".csv", "res_2checkout2/data"+str(cnt)+".csv")
+            shutil.copy("res/data"+str(i)+".csv", "res2/data"+str(cnt)+".csv")
             cnt += 1
 
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_2checkout2/param.npy", para)
+    np.save("res2/param.npy", para)
     return cnt
 
 
@@ -134,12 +134,12 @@ def check_quality():
 def check_outlier(length):
     p90 = []
     for i in range(length):
-        data = pd.read_csv("res_2checkout2/data"+str(i)+".csv")
+        data = pd.read_csv("res2/data"+str(i)+".csv")
         for row in range(14):
             # data.loc[row]用来取出一个service对应的行
             r = data.loc[row]
             if r["service"] == "frontend":
-                p90.append(r["0.90"])
+                p90.append(float(r["0.90"]))
                 # print(r["0.90"])
     return p90
 
@@ -157,7 +157,7 @@ def rm_outlier(length):
     '''
     cnt = 0
     para = {}
-    para_ori = np.load("res_2checkout2/param.npy", allow_pickle=True).item()
+    para_ori = np.load("res2/param.npy", allow_pickle=True).item()
     for s in services:
         para[s] = []
     for i in range (length):
@@ -166,12 +166,12 @@ def rm_outlier(length):
         else:
             for s in services:
                 para[s].append(para_ori[s][i])
-            shutil.copy("res_2checkout2/data"+str(i)+".csv", "res_2checkout2_final/data"+str(cnt)+".csv")
+            shutil.copy("res2/data"+str(i)+".csv", "res2_final/data"+str(cnt)+".csv")
             cnt += 1
             
     print(cnt)
     print(len(para["frontend"]))
-    np.save("res_2checkout2_final/param.npy", para)
+    np.save("res2_final/param.npy", para)
 
 
 def run():
