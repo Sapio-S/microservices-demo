@@ -14,10 +14,10 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # You can generate a Token from the "Tokens Tab" in the UI
-token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
+token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://localhost:8086", token=token, org=org)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org)
 quantile = ["0.90"]
 # start_time = datetime.now(timezone.utc).astimezone().isoformat()
 # end_time = datetime.now(timezone.utc).astimezone().isoformat()

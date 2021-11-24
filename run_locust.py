@@ -20,10 +20,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
+token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://localhost:8086", token=token)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token)
 
 quantile = ["0.50", '0.75', '0.90', '0.99']
 
@@ -298,7 +298,7 @@ def run_one_set(i):
     #         break
     locust_cmd = "/home/yuqingxie/.local/bin/locust -u 200 -r 20 \
         -f src/loadgenerator/locustfile_original.py --headless \
-        --run-time 5m --host http://localhost:8080 --csv=locust_table/"+str(i)
+        --run-time 5m --host http://10.0.0.41:8080 --csv=locust_table/"+str(i)
     print(locust_cmd)
     # start_timestamp = time.time() # 计算rps
     locust_run = subprocess.Popen(locust_cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

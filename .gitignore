@@ -26,3 +26,5 @@ wrk_collection*/
 test*/
 dataset*
 /download
+influxdb*
+skaffold

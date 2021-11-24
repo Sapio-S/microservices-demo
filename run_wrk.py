@@ -18,10 +18,10 @@ from consts import consts
 max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
-token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
+token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://localhost:8086", token=token, org=org)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org)
 # influxclient = InfluxDBClient(url="http://10.0.0.33:8086", token=token)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
@@ -107,7 +107,7 @@ def generate_parameters(num_samples):
 
 def read_parameters():
     global para_dic
-    para_dic = np.load("res/param_300.npy", allow_pickle=True).item()
+    para_dic = np.load("res/param_200.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -402,12 +402,12 @@ def run_one_set(i):
     # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
         shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
             shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1
@@ -479,12 +479,14 @@ def generate_wrk():
 
 def main():
     num_samples = 200
-    generate_parameters(num_samples)
-    # read_parameters()
+    # generate_parameters(num_samples)
+    read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
     # wrk_para = []
     for i in range(num_samples):
+        if i <= 21:
+            continue
         # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
         # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
