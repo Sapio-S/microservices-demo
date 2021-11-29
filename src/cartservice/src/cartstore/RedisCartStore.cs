@@ -38,7 +38,7 @@ namespace cartservice.cartstore
         private InfluxDBClient influxclient;
         private WriteApi writeApi0;
         public void initInflux(){
-            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.41:8086", "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==");
+            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.51:8086", "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg==");
             var options = InfluxDB.Client.WriteOptions.CreateNew()
                 .BatchSize(2000)
                 .Build();

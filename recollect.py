@@ -18,10 +18,10 @@ from consts import consts
 max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
-token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token)
+influxclient = InfluxDBClient(url="http://10.0.0.51:8086", token=token)
 quantile = ["0.50", '0.90', '0.95', '0.99']
 headers = ["service", "rps","avg", "0.50", '0.90', '0.95', '0.99']
 

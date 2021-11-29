@@ -28,3 +28,4 @@ dataset*
 /download
 influxdb*
 skaffold
+data_*

@@ -72,6 +72,10 @@ spec:
             value: "checkoutservice:5050"
           - name: AD_SERVICE_ADDR
             value: "adservice:9555"
+          - name: GOGC
+            value: "20"
+          - name: GOMAXPROCS
+            value: "4"
           resources:
             requests:
               cpu: 100m

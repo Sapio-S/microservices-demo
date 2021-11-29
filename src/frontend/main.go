@@ -46,7 +46,7 @@ const (
 	cookieCurrency  = cookiePrefix + "currency"
 )
 
-const token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+const token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
 const bucket = "trace"
 const org = "msra"
 
@@ -151,7 +151,7 @@ func main() {
 	r.HandleFunc("/_healthz", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "ok") })
 
 	
-	client = influxdb2.NewClientWithOptions("http://10.0.0.41:8086", token, 
+	client = influxdb2.NewClientWithOptions("http://10.0.0.51:8086", token, 
 		influxdb2.DefaultOptions().
 		SetBatchSize(2000).
 		SetFlushInterval(60000))
@@ -179,11 +179,13 @@ func mustMapEnv(target *string, envKey string) {
 
 func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
+	defer cancel()
 	*conn, err = grpc.DialContext(ctx, "dns:///"+addr,
 		grpc.WithInsecure(),
 		grpc.WithBalancerName(roundrobin.Name),
 		grpc.WithBlock(),
-		// grpc.WithTimeout(time.Second*3),
+		// grpc.WithTimeout(time.Second*20),
 		// grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
 	)
 	if err != nil {

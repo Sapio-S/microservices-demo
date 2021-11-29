@@ -19,10 +19,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token)
+influxclient = InfluxDBClient(url="http://10.0.0.51:8086", token=token, org=org)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
 
@@ -82,72 +82,68 @@ def query_db(start_time, end_time, duration):
         data[op] = {}
 
     # get rps of a service
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
-            |> group(columns: ["service"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['service']
-                data[service]["rps"] = float(record.values['_value'] / duration)
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
+        |> group(columns: ["service"]) \
+        |> count() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['service']
+            data[service]["rps"] = float(record.values['_value'] / duration)
     
     # get average latency of a service
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
-            |> group(columns: ["service"]) \
-            |> toFloat() \
-            |> mean() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['service']
-                data[service]["avg"] = record.values['_value']
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency") \
+        |> group(columns: ["service"]) \
+        |> toFloat() \
+        |> mean() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['service']
+            data[service]["avg"] = record.values['_value']
     
     # get rps of redisDB
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
-            |> group(columns: ["op"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['op']
-                if service is None:
-                    continue
-                try:
-                    data[service]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data[service]["rps"] = 0
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
+        |> group(columns: ["op"]) \
+        |> count() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['op']
+            if service is None:
+                continue
+            try:
+                data[service]["rps"] = float(record.values['_value'] / duration)
+            except:
+                data[service]["rps"] = 0
     
     # get average latency of redisDB
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
-            |> group(columns: ["op"]) \
-            |> toFloat() \
-            |> mean() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['op']
-                if service is None:
-                    continue
-                try:
-                    data[service]["avg"] = record.values['_value']
-                except:
-                    data[service]["avg"] = 0
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "cartservice") \
+        |> group(columns: ["op"]) \
+        |> toFloat() \
+        |> mean() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['op']
+            if service is None:
+                continue
+            try:
+                data[service]["avg"] = record.values['_value']
+            except:
+                data[service]["avg"] = 0
 
     # get p50, p75, p90, p99 latency of a service
     for q in quantile:
@@ -180,48 +176,46 @@ def query_db(start_time, end_time, duration):
                 data[service][q] = record.values['_value']
     
     # get rps of checkout pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-            |> group(columns: ["op"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['op']
-                if service is None:
-                    continue
-                try:
-                    data[service]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data[service]["rps"] = 0
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
+        |> group(columns: ["op"]) \
+        |> count() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['op']
+            if service is None:
+                continue
+            try:
+                data[service]["rps"] = float(record.values['_value'] / duration)
+            except:
+                data[service]["rps"] = 0
     
     pod_name = {}
     cnt = 0
     # get rps of checkout pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-            |> group(columns: ["podname"]) \
-            |> count() \
-            '.format(start_time, end_time)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                if service not in pod_name:
-                    pod_name[service] = cnt
-                    data["checkout_pod"+str(pod_name[service])] = {}
-                    cnt += 1
-                try:
-                    data["checkout_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
-                except:
-                    data["checkout_pod"+str(pod_name[service])]["rps"] = 0
+    query = 'from(bucket: "trace") \
+        |> range(start: {}, stop: {}) \
+        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
+        |> group(columns: ["podname"]) \
+        |> count() \
+        '.format(start_time, end_time)
+    tables = influxclient.query_api().query(query, org=org)
+    for table in tables:
+        for record in table.records:
+            service = record.values['podname']
+            if service is None:
+                continue
+            if service not in pod_name:
+                pod_name[service] = cnt
+                data["checkout_pod"+str(pod_name[service])] = {}
+                cnt += 1
+            try:
+                data["checkout_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
+            except:
+                data["checkout_pod"+str(pod_name[service])]["rps"] = 0
     
     # get p50, p75, p90, p99 latency of checkout pods
     for q in quantile:
@@ -287,12 +281,12 @@ def run_one_set(i, param):
     # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
         shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
             shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1
@@ -305,7 +299,7 @@ def run_one_set(i, param):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t10 -L -c100 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/generated-script.lua -R100 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c50 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R145 " + ip
     print(wrk_cmd)
     wrk_record = open("test_res/"+i, mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -336,20 +330,19 @@ def run_one_set(i, param):
 def main():
     time_zone = []
 
-    # GP_files = []
+    # fluxion_files = []
     fluxion_files = []
     total_files = []
 
-    for train in [400]:
+    for train in [10,25,50,100]:
         for i in range(10):
             # name = "DNN_2checkout_"+str(train)+"_"+str(i)
             # total_files.append(["1116/"+str(name)+".npy", name])
-            # name = "fluxion_2checkout_"+str(train)+"_"+str(i)
-            # total_files.append(["1116/"+str(name)+".npy", name])            
-            name = "GP_2checkout_"+str(train)+"_"+str(i)
-            total_files.append(["1116/"+str(name)+".npy", name])
-    name = "GP_2checkout_300_9"
-    total_files.append(["1116/"+str(name)+".npy", name])
+            name = "fluxion_single_"+str(train)+"_"+str(i)
+            total_files.append(["1128_2/"+str(name)+".npy", name])            
+            name = "GP_single_"+str(train)+"_"+str(i)
+            total_files.append(["1128_2/"+str(name)+".npy", name])
+    # total_files.append(["1116/"+str(name)+".npy", name])
     
     for files in total_files:
         param = np.load(files[0], allow_pickle = True).item()

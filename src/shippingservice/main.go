@@ -60,7 +60,7 @@ func init() {
 	log.Out = os.Stdout
 }
 
-const token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+const token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
 const bucket = "trace"
 const org = "msra"
 
@@ -117,7 +117,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	client = influxdb2.NewClientWithOptions("http://10.0.0.41:8086", token, 
+	client = influxdb2.NewClientWithOptions("http://10.0.0.51:8086", token, 
 		influxdb2.DefaultOptions().
 		SetBatchSize(2000).
 		SetFlushInterval(60000))
