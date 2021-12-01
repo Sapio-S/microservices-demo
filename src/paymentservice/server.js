@@ -35,7 +35,7 @@ const bucket = 'trace';
 const client = new InfluxDB({url: 'http://10.0.0.51:8086', token: token})
 const writeOptions = {
   batchSize: 2000, 
-  flushInterval: 60,
+  flushInterval: 60000,
 }
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 

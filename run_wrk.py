@@ -412,7 +412,7 @@ def run_one_set(i):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c50 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R150 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c10 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R150 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
