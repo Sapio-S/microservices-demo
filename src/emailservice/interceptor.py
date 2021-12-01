@@ -18,7 +18,7 @@ class InfluxInterceptor(ServerInterceptor):
                                         token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg==", 
                                         org="msra")
         self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
-                                                                        flush_interval=60_000))
+                                                                        flush_interval=60000))
         
     def close_program(self, *args):
         self.write_api.flush()
