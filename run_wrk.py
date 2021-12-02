@@ -21,7 +21,7 @@ ops = ["get", "set"]
 token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org,timeout=300_000)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org,timeout=300000)
 # influxclient = InfluxDBClient(url="http://10.0.0.33:8086", token=token)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
@@ -470,15 +470,15 @@ def generate_wrk():
     return index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio
 
 def main():
-    num_samples = 100
-    # generate_parameters(num_samples)
-    read_parameters()
+    num_samples = 120
+    generate_parameters(num_samples)
+    # read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
     # wrk_para = []
     for i in range(num_samples):
-        if i <= 3:
-            continue
+        # if i <= 3:
+        #     continue
         # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
         # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
