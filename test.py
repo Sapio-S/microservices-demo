@@ -19,10 +19,10 @@ max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
 
-token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
+token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.51:8086", token=token, org=org)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
 
@@ -281,12 +281,12 @@ def run_one_set(i, param):
     # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
         shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
             shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1

@@ -15,11 +15,11 @@ class InfluxInterceptor(ServerInterceptor):
         signal.signal(signal.SIGTERM, self.close_program)
         self.service = name
         self.pod = podName
-        self.client = InfluxDBClient(url="http://10.0.0.51:8086", 
-                                        token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg==", 
+        self.client = InfluxDBClient(url="http://10.0.0.41:8086", 
+                                        token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==", 
                                         org="msra")
-        self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=2000,
-                                                                        flush_interval=60000))
+        self.write_api = self.client.write_api(write_options=WriteOptions(batch_size=200,
+                                                                        flush_interval=1000))
         
     def close_program(self, *args):
         self.write_api.flush()

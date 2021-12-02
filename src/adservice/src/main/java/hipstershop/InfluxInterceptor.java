@@ -28,17 +28,17 @@ public class InfluxInterceptor implements ServerInterceptor {
 
   private static final Logger logger = Logger.getLogger(InfluxInterceptor.class.getName());
 
-  private static String token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg==";
+  private static String token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==";
   private static String org = "msra";
   private static String bucket = "trace";
   private static InfluxDBClient influxDBClient;
   private static WriteApi writeApi;
 
   InfluxInterceptor(){
-    this.influxDBClient = InfluxDBClientFactory.create("http://10.0.0.51:8086", this.token.toCharArray(), this.org, this.bucket);
+    this.influxDBClient = InfluxDBClientFactory.create("http://10.0.0.41:8086", this.token.toCharArray(), this.org, this.bucket);
     this.writeApi = this.influxDBClient.getWriteApi(WriteOptions.builder()
-      .batchSize(2000)
-      .flushInterval(60000)
+      .batchSize(200)
+      .flushInterval(1000)
       .build());
     terminateHandler handler = new terminateHandler(this.writeApi, this.influxDBClient);
     Signal.handle(new Signal("INT"), handler);

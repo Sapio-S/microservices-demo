@@ -36,12 +36,12 @@ if __name__ == "__main__":
     # try:
     #     exporter = stackdriver_exporter.StackdriverExporter()
     #     tracer = Tracer(exporter=exporter)
-    #     tracer_interceptor = client_interceptor.OpenCensusClientInterceptor(tracer, host_port='10.0.0.51:'+port)
+    #     tracer_interceptor = client_interceptor.OpenCensusClientInterceptor(tracer, host_port='10.0.0.41:'+port)
     # except:
     #     tracer_interceptor = client_interceptor.OpenCensusClientInterceptor()
 
     # set up server stub
-    channel = grpc.insecure_channel('10.0.0.51:'+port)
+    channel = grpc.insecure_channel('10.0.0.41:'+port)
     channel = grpc.intercept_channel(channel, tracer_interceptor)
     stub = demo_pb2_grpc.RecommendationServiceStub(channel)
     # form request

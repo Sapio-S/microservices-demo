@@ -29,13 +29,13 @@ const logger = pino({
   useLevelLabels: true
 });
 
-const token = '2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg==';
+const token = '_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==';
 const org = 'msra';
 const bucket = 'trace';
-const client = new InfluxDB({url: 'http://10.0.0.51:8086', token: token})
+const client = new InfluxDB({url: 'http://10.0.0.41:8086', token: token})
 const writeOptions = {
-  batchSize: 2000, 
-  flushInterval: 60000,
+  batchSize: 200, 
+  flushInterval: 1000,
 }
 const writeApi = client.getWriteApi(org, bucket, 'ns', writeOptions)
 

@@ -18,10 +18,10 @@ from consts import consts
 max_retry = 5
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
-token = "2kmAK9DbfrhFA-nojNc1DKk3q8wQ4a14SnmMdVOjvBfsgTH_saoqvCUaZXuW3CBMyW2tIlew-zud2p6jKSboPg=="
+token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.51:8086", token=token, org=org)
+influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org,timeout=300_000)
 # influxclient = InfluxDBClient(url="http://10.0.0.33:8086", token=token)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
@@ -107,7 +107,7 @@ def generate_parameters(num_samples):
 
 def read_parameters():
     global para_dic
-    para_dic = np.load("res/param_300.npy", allow_pickle=True).item()
+    para_dic = np.load("res/param_100.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -231,23 +231,23 @@ def query_db(start_time, end_time, duration):
                 service = record.values['service']
                 data[service][q] = record.values['_value']
     
-    # get rps of checkout pods
-    query = 'from(bucket: "trace") \
-        |> range(start: {}, stop: {}) \
-        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-        |> group(columns: ["op"]) \
-        |> count() \
-        '.format(start_time, end_time)
-    tables = influxclient.query_api().query(query, org=org)
-    for table in tables:
-        for record in table.records:
-            service = record.values['op']
-            if service is None:
-                continue
-            try:
-                data[service]["rps"] = float(record.values['_value'] / duration)
-            except:
-                data[service]["rps"] = 0
+    # # get rps of checkout pods
+    # query = 'from(bucket: "trace") \
+    #     |> range(start: {}, stop: {}) \
+    #     |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
+    #     |> group(columns: ["op"]) \
+    #     |> count() \
+    #     '.format(start_time, end_time)
+    # tables = influxclient.query_api().query(query, org=org)
+    # for table in tables:
+    #     for record in table.records:
+    #         service = record.values['op']
+    #         if service is None:
+    #             continue
+    #         try:
+    #             data[service]["rps"] = float(record.values['_value'] / duration)
+    #         except:
+    #             data[service]["rps"] = 0
 
     # get p50, p75, p90, p99 latency of redisDB
     for q in quantile:
@@ -305,46 +305,46 @@ def query_db(start_time, end_time, duration):
     #                 continue
     #             data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
     
-    pod_name = {}
-    cnt = 0
-    # get rps of checkout pods
-    query = 'from(bucket: "trace") \
-        |> range(start: {}, stop: {}) \
-        |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-        |> group(columns: ["podname"]) \
-        |> count() \
-        '.format(start_time, end_time)
-    tables = influxclient.query_api().query(query, org=org)
-    for table in tables:
-        for record in table.records:
-            service = record.values['podname']
-            if service is None:
-                continue
-            if service not in pod_name:
-                pod_name[service] = cnt
-                data["checkout_pod"+str(pod_name[service])] = {}
-                cnt += 1
-            try:
-                data["checkout_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
-            except:
-                data["checkout_pod"+str(pod_name[service])]["rps"] = 0
+    # pod_name = {}
+    # cnt = 0
+    # # get rps of checkout pods
+    # query = 'from(bucket: "trace") \
+    #     |> range(start: {}, stop: {}) \
+    #     |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
+    #     |> group(columns: ["podname"]) \
+    #     |> count() \
+    #     '.format(start_time, end_time)
+    # tables = influxclient.query_api().query(query, org=org)
+    # for table in tables:
+    #     for record in table.records:
+    #         service = record.values['podname']
+    #         if service is None:
+    #             continue
+    #         if service not in pod_name:
+    #             pod_name[service] = cnt
+    #             data["checkout_pod"+str(pod_name[service])] = {}
+    #             cnt += 1
+    #         try:
+    #             data["checkout_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
+    #         except:
+    #             data["checkout_pod"+str(pod_name[service])]["rps"] = 0
     
-    # get p50, p75, p90, p99 latency of checkout pods
-    for q in quantile:
-        query = 'from(bucket: "trace") \
-            |> range(start: {}, stop: {}) \
-            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-            |> group(columns: ["podname"]) \
-            |> toFloat() \
-            |> quantile(q: {}, column: "_value") \
-            '.format(start_time, end_time, q)
-        tables = influxclient.query_api().query(query, org=org)
-        for table in tables:
-            for record in table.records:
-                service = record.values['podname']
-                if service is None:
-                    continue
-                data["checkout_pod"+str(pod_name[service])][q] = record.values['_value']
+    # # get p50, p75, p90, p99 latency of checkout pods
+    # for q in quantile:
+    #     query = 'from(bucket: "trace") \
+    #         |> range(start: {}, stop: {}) \
+    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
+    #         |> group(columns: ["podname"]) \
+    #         |> toFloat() \
+    #         |> quantile(q: {}, column: "_value") \
+    #         '.format(start_time, end_time, q)
+    #     tables = influxclient.query_api().query(query, org=org)
+    #     for table in tables:
+    #         for record in table.records:
+    #             service = record.values['podname']
+    #             if service is None:
+    #                 continue
+    #             data["checkout_pod"+str(pod_name[service])][q] = record.values['_value']
     return data
 
 
@@ -394,12 +394,12 @@ def run_one_set(i):
     # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
         shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios4", 
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
             shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1
@@ -471,12 +471,14 @@ def generate_wrk():
 
 def main():
     num_samples = 100
-    generate_parameters(num_samples)
-    # read_parameters()
+    # generate_parameters(num_samples)
+    read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
     # wrk_para = []
     for i in range(num_samples):
+        if i <= 3:
+            continue
         # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
         # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])
         start,end = run_one_set(i)
