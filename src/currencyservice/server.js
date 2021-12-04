@@ -26,6 +26,7 @@ const MAIN_PROTO_PATH = path.join(__dirname, './proto/demo.proto');
 const HEALTH_PROTO_PATH = path.join(__dirname, './proto/grpc/health/v1/health.proto');
 
 const PORT = process.env.PORT;
+const podname=process.env.HOSTNAME;
 
 const shopProto = _loadProto(MAIN_PROTO_PATH).hipstershop;
 const healthProto = _loadProto(HEALTH_PROTO_PATH).grpc.health.v1;
@@ -133,10 +134,10 @@ function getNanoSecTime() {
   var hrTime = process.hrtime();
   return hrTime[0] * 1000000000 + hrTime[1];
 }
-const token = '_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==';
+const token = 'b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ==';
 const org = 'msra';
 const bucket = 'trace';
-const client = new InfluxDB({url: 'http://10.0.0.41:8086', token: token})
+const client = new InfluxDB({url: 'http://10.0.0.29:8086', token: token})
 const writeOptions = {
   batchSize: 200, 
   flushInterval: 1000,
@@ -175,12 +176,12 @@ function main () {
 
     }
     else if(ctx.call.request.hasOwnProperty("from")){ // conversion
-      const point = new Point('service_metric').intField("latency", costtime).tag("service", "currencyservice").tag("method", "conversion").timestamp(new Date())
+      const point = new Point('service_metric').intField("latency", costtime).tag("podname", podname).tag("service", "currencyservice").tag("method", "conversion").timestamp(new Date())
       writeApi.writePoint(point)
       // console.log(`latency ${costtime}`)
     }
     else{ // getSupportedCurrencies
-      const point = new Point('service_metric').intField("latency", costtime).tag("service", "currencyservice").tag("method", "get currency").timestamp(new Date())
+      const point = new Point('service_metric').intField("latency", costtime).tag("podname", podname).tag("service", "currencyservice").tag("method", "get currency").timestamp(new Date())
       writeApi.writePoint(point)
       // console.log(`latency ${costtime}`)
     }

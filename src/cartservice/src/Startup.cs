@@ -29,10 +29,12 @@ namespace cartservice
             string hash_max_ziplist_entries = Configuration["hash_max_ziplist_entries"];
             string maxmemory_samples = Configuration["maxmemory_samples"];
             string maxmemory = Configuration["maxmemory"];
+            string podname = Configuration["HOSTNAME"];
+            
             ICartStore cartStore = null;
             if (!string.IsNullOrEmpty(redisAddress))
             {
-                cartStore = new RedisCartStore(redisAddress, maxmemory, maxmemory_samples, hash_max_ziplist_entries);
+                cartStore = new RedisCartStore(redisAddress, maxmemory, maxmemory_samples, hash_max_ziplist_entries,podname);
             }
             else
             {

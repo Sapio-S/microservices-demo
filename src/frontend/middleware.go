@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 	"time"
-
+	"os"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
@@ -39,6 +39,10 @@ type responseRecorder struct {
 	status int
 	w      http.ResponseWriter
 }
+
+var (
+	podName = os.Getenv("HOSTNAME")
+)
 
 func (r *responseRecorder) Header() http.Header { return r.w.Header() }
 
@@ -78,7 +82,7 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// 	"http.resp.status":  rr.status,
 		// 	"http.resp.bytes":   rr.b}).Debugf("request complete")
 
-		p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").SetTime(time.Now())
+		p := influxdb2.NewPointWithMeasurement("service_metric").AddField("latency", int64(time.Since(start).Microseconds())).AddTag("method", r.Method).AddTag("service", "frontend").AddTag("podname", podName).SetTime(time.Now())
 		// write point asynchronously
 		writeAPI.WritePoint(p)
 	}()

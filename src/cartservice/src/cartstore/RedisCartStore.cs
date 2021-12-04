@@ -29,6 +29,7 @@ namespace cartservice.cartstore
         private string maxmemory;
         private string maxmemory_samples;
         private string hash_max_ziplist_entries;
+        private string podname;
 
         // const string token = "EHPNLGRTa1fwor7b9E0tjUHXw6EfHw1bl0yJ9LHuuoT7J7rUhXVQ-oAIq7vB9IIh6MJ9tT2-CFyqoTBRO9DzZg==";
         const string bucket = "trace";
@@ -38,7 +39,7 @@ namespace cartservice.cartstore
         private InfluxDBClient influxclient;
         private WriteApi writeApi0;
         public void initInflux(){
-            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.41:8086", "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==");
+            this.influxclient = InfluxDBClientFactory.Create("http://10.0.0.29:8086", "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ==");
             var options = InfluxDB.Client.WriteOptions.CreateNew()
                 .BatchSize(200)
                 .FlushInterval(1000)
@@ -50,7 +51,7 @@ namespace cartservice.cartstore
             writeApi0.WritePoint(bucket, org, p);
         }
 
-        public RedisCartStore(string redisAddress, string maxmemory_, string maxmemory_samples_, string hash_max_ziplist_entries_)
+        public RedisCartStore(string redisAddress, string maxmemory_, string maxmemory_samples_, string hash_max_ziplist_entries_,string podname_)
         {
             // Serialize empty cart into byte array.
             var cart = new Hipstershop.Cart();
@@ -67,6 +68,7 @@ namespace cartservice.cartstore
             hash_max_ziplist_entries = hash_max_ziplist_entries_;
             maxmemory_samples = maxmemory_samples_;
             maxmemory = maxmemory_;
+            podname=podname_;
         }
 
         public Task InitializeAsync()
@@ -162,7 +164,8 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice")
+                    .Tag("podname", podname);
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -193,7 +196,8 @@ namespace cartservice.cartstore
                 latency = (DateTime.Now.Ticks - start)/10;
             
                 var point2 = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice")
+                    .Tag("podname", podname);
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point2);
             }
@@ -219,7 +223,8 @@ namespace cartservice.cartstore
                 long  latency = (DateTime.Now.Ticks - start)/10;
 
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice");
+                    .Field("latency", latency).Tag("op", "set").Tag("service", "cartservice")
+                    .Tag("podname", podname);
                 Console.WriteLine("hash set async latency "+latency.ToString());
                 Write2Influx(point);
                 
@@ -246,7 +251,8 @@ namespace cartservice.cartstore
                 // get latency in microseconds
                 long  latency = (DateTime.Now.Ticks - start)/10;
                 var point = PointData.Measurement("service_metric")
-                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice");
+                    .Field("latency", latency).Tag("op", "get").Tag("service", "cartservice")
+                    .Tag("podname", podname);
                 Console.WriteLine("hash get async latency "+latency.ToString());
                 Write2Influx(point);
 

@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: productcatalogservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: productcatalogservice
@@ -60,7 +61,7 @@ kind: Service
 metadata:
   name: productcatalogservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: productcatalogservice
   ports:

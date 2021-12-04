@@ -75,7 +75,7 @@ type checkoutService struct {
 	paymentSvcAddr        string
 }
 
-const token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+const token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
 const bucket = "trace"
 const org = "msra"
 // Authorization unary interceptor function to handle authorize per RPC call
@@ -139,7 +139,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client = influxdb2.NewClientWithOptions("http://10.0.0.41:8086", token, 
+	client = influxdb2.NewClientWithOptions("http://10.0.0.29:8086", token, 
 		influxdb2.DefaultOptions().
 		SetBatchSize(200).
 		SetFlushInterval(1000))

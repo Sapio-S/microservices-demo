@@ -120,7 +120,8 @@ class HealthCheck():
 
 def start(dummy_mode):
   MAX_WORKERS = int(os.environ.get("MAX_WORKERS"))
-  interceptors = [InfluxInterceptor("emailservice")]
+  podName = os.environ.get("HOSTNAME")
+  interceptors = [InfluxInterceptor("emailservice",podName)]
   server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
         interceptors=interceptors

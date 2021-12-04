@@ -113,10 +113,10 @@ gcloud services enable monitoring.googleapis.com \
     minikube service frontend-external
     ```
 
-    - **Docker For Desktop** should automatically provide the frontend at http://10.0.0.41:80
+    - **Docker For Desktop** should automatically provide the frontend at http://10.0.0.29:80
 
     - **Kind** does not provision an IP address for the service.
-      You must run a port-forwarding process to access the frontend at http://10.0.0.41:8080:
+      You must run a port-forwarding process to access the frontend at http://10.0.0.29:8080:
 
     ```shell
     kubectl port-forward deployment/frontend 8080:8080

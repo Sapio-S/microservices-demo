@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: currencyservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: currencyservice
@@ -61,7 +62,7 @@ kind: Service
 metadata:
   name: currencyservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: currencyservice
   ports:

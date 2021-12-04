@@ -56,13 +56,13 @@ public final class AdService {
   private void start() throws IOException {
     // 从环境变量中获取该数值
     MAX_ADS_TO_SERVE = Integer.parseInt(System.getenv().getOrDefault("MAX_ADS_TO_SERVE", "2"));
-
+    String hostName = System.getenv().getOrDefault("HOSTNAME","adservice");
     int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9555"));
     healthMgr = new HealthStatusManager();
 
     server =
         ServerBuilder.forPort(port)
-            .addService(ServerInterceptors.intercept(new AdServiceImpl(), new InfluxInterceptor()))
+            .addService(ServerInterceptors.intercept(new AdServiceImpl(), new InfluxInterceptor(hostName)))
             .addService(healthMgr.getHealthService())
             .build()
             .start();

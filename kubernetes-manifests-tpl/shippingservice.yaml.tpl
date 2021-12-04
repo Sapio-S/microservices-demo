@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: shippingservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: shippingservice
@@ -60,7 +61,7 @@ kind: Service
 metadata:
   name: shippingservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: shippingservice
   ports:

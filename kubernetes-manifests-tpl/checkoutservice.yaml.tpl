@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: checkoutservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: checkoutservice
@@ -57,7 +58,7 @@ kind: Service
 metadata:
   name: checkoutservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: checkoutservice
   ports:

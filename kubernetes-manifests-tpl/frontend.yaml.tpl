@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: frontend
@@ -89,7 +90,7 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: frontend
   ports:

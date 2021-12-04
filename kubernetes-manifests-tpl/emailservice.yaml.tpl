@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: emailservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: emailservice
@@ -64,7 +65,7 @@ kind: Service
 metadata:
   name: emailservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: emailservice
   ports:

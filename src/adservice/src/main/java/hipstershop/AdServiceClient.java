@@ -99,7 +99,7 @@ public class AdServiceClient {
   public static void main(String[] args) throws InterruptedException {
     // Add final keyword to pass checkStyle.
     final String contextKeys = getStringOrDefaultFromArgs(args, 0, "camera");
-    final String host = getStringOrDefaultFromArgs(args, 1, "10.0.0.41");
+    final String host = getStringOrDefaultFromArgs(args, 1, "10.0.0.29");
     final int serverPort = getPortOrDefaultFromArgs(args);
 
     AdServiceClient client = new AdServiceClient(host, serverPort);

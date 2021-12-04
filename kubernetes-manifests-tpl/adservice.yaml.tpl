@@ -18,6 +18,7 @@ kind: Deployment
 metadata:
   name: adservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: adservice
@@ -67,7 +68,7 @@ kind: Service
 metadata:
   name: adservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: adservice
   ports:

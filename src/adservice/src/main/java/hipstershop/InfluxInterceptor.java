@@ -28,14 +28,17 @@ public class InfluxInterceptor implements ServerInterceptor {
 
   private static final Logger logger = Logger.getLogger(InfluxInterceptor.class.getName());
 
-  private static String token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg==";
+  private static String token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ==";
   private static String org = "msra";
   private static String bucket = "trace";
   private static InfluxDBClient influxDBClient;
   private static WriteApi writeApi;
-
-  InfluxInterceptor(){
-    this.influxDBClient = InfluxDBClientFactory.create("http://10.0.0.41:8086", this.token.toCharArray(), this.org, this.bucket);
+  private String podname;
+  InfluxInterceptor(){}
+  
+  InfluxInterceptor(String podName){
+    this.podname = podName;
+    this.influxDBClient = InfluxDBClientFactory.create("http://10.0.0.29:8086", this.token.toCharArray(), this.org, this.bucket);
     this.writeApi = this.influxDBClient.getWriteApi(WriteOptions.builder()
       .batchSize(200)
       .flushInterval(1000)
@@ -58,7 +61,7 @@ public class InfluxInterceptor implements ServerInterceptor {
     ServerCall.Listener<ReqT> res = next.startCall(call, requestHeaders);
 
     long end = (System.nanoTime() - start)/1000;  // change into us
-    Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "adservice").addField("latency", end).time(Instant.now(), WritePrecision.NS);;
+    Point point = Point.measurement("service_metric").addTag("pod", "adservice").addTag("service", "adservice").addTag("podname", this.podname).addField("latency", end).time(Instant.now(), WritePrecision.NS);;
     this.writeApi.writePoint(point);
     return res;
   }

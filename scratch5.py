@@ -6,6 +6,7 @@ import pandas as pd
 import shutil
 import re
 import heapq
+services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "shippingservice", "redis"]
 
 '''
 check timeout & 500 errors
@@ -15,6 +16,9 @@ def check_quality():
     p90 = []
     cnt = 0
     para = {}
+    para_ori = np.load("res/param_200.npy", allow_pickle=True).item()
+    for s in services:
+        para[s] = []
     for i in range (200):
         latency_infite = False
         data = pd.read_csv("res/data"+str(i)+".csv")
@@ -38,12 +42,17 @@ def check_quality():
                 num = int(response500.group(1))
                 if num > 300:
                     print(i, "response500", num)
-                    cnt += 1
+                    continue
+            shutil.copy("res/data"+str(i)+".csv", "res_tmp/data"+str(cnt)+".csv")
+            cnt += 1
+            for s in services:
+                para[s].append(para_ori[s][i])
             # sentence = text.split("\n")
             # rrps = sentence[-3].split(" ")[-1]
             # rps.append(float(rrps))
 
     print(cnt)
+    np.save("res_tmp/param.npy", para)
     print("rps", np.mean(rps), np.std(rps))
     print("p90", np.mean(p90), np.std(p90))
     return cnt

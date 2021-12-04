@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: paymentservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: paymentservice
@@ -60,7 +61,7 @@ kind: Service
 metadata:
   name: paymentservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: paymentservice
   ports:

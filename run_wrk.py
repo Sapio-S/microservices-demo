@@ -15,13 +15,14 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 from consts import consts
 # constants
-max_retry = 5
+max_retry = 10
+services2 = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "get","set", "shippingservice"]
 services = ["adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend", "paymentservice", "productcatalogservice", "recommendationservice", "redis", "shippingservice"]
 ops = ["get", "set"]
-token = "_CEHxF2nWxvPE6BW_qJvmXU2OCfnIcys3mm4mnivqpBb9VeBDnFsVi7f2M_YIgSREJAQBP8YQF2o7tRQF7ilHg=="
+token = "b-M3xpZbjd9kVVf8DlQ8hAlAwc-ttyn12Ewhh1evVg7034k330Ox1PRIBHiuZ5Pum8g56Cjt-pD-s36UNg8JjQ=="
 org = "msra"
 bucket = "trace"
-influxclient = InfluxDBClient(url="http://10.0.0.41:8086", token=token, org=org,timeout=300000)
+influxclient = InfluxDBClient(url="http://10.0.0.29:8086", token=token, org=org,timeout=300000)
 # influxclient = InfluxDBClient(url="http://10.0.0.33:8086", token=token)
 
 quantile = ["0.50", '0.90', '0.95', '0.99']
@@ -107,7 +108,7 @@ def generate_parameters(num_samples):
 
 def read_parameters():
     global para_dic
-    para_dic = np.load("res/param_100.npy", allow_pickle=True).item()
+    para_dic = np.load("res/param_300.npy", allow_pickle=True).item()
 
 def print_cmd(p):
     # 实时打印子进程的执行结果
@@ -231,23 +232,65 @@ def query_db(start_time, end_time, duration):
                 service = record.values['service']
                 data[service][q] = record.values['_value']
     
-    # # get rps of checkout pods
-    # query = 'from(bucket: "trace") \
-    #     |> range(start: {}, stop: {}) \
-    #     |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-    #     |> group(columns: ["op"]) \
-    #     |> count() \
-    #     '.format(start_time, end_time)
-    # tables = influxclient.query_api().query(query, org=org)
-    # for table in tables:
-    #     for record in table.records:
-    #         service = record.values['op']
-    #         if service is None:
-    #             continue
-    #         try:
-    #             data[service]["rps"] = float(record.values['_value'] / duration)
-    #         except:
-    #             data[service]["rps"] = 0
+    for ser in services2:
+        # get rps of the pods
+        query = 'from(bucket: "trace") \
+            |> range(start: {}, stop: {}) \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "{}") \
+            |> group(columns: ["op"]) \
+            |> count() \
+            '.format(start_time, end_time,ser)
+        tables = influxclient.query_api().query(query, org=org)
+        for table in tables:
+            for record in table.records:
+                service = record.values['op']
+                if service is None:
+                    continue
+                try:
+                    data[service]["rps"] = float(record.values['_value'] / duration)
+                except:
+                    data[service]["rps"] = 0
+        
+        pod_name = {}
+        cnt = 0
+        # get rps of checkout pods
+        query = 'from(bucket: "trace") \
+            |> range(start: {}, stop: {}) \
+            |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "{}") \
+            |> group(columns: ["podname"]) \
+            |> count() \
+            '.format(start_time, end_time, ser)
+        tables = influxclient.query_api().query(query, org=org)
+        for table in tables:
+            for record in table.records:
+                service = record.values['podname']
+                if service is None:
+                    continue
+                if service not in pod_name:
+                    pod_name[service] = cnt
+                    data[ser+"_pod"+str(pod_name[service])] = {}
+                    cnt += 1
+                try:
+                    data[ser+"_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
+                except:
+                    data[ser+"_pod"+str(pod_name[service])]["rps"] = 0
+        
+        # get p50, p75, p90, p99 latency of checkout pods
+        for q in quantile:
+            query = 'from(bucket: "trace") \
+                |> range(start: {}, stop: {}) \
+                |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "{}") \
+                |> group(columns: ["podname"]) \
+                |> toFloat() \
+                |> quantile(q: {}, column: "_value") \
+                '.format(start_time, end_time, ser,q)
+            tables = influxclient.query_api().query(query, org=org)
+            for table in tables:
+                for record in table.records:
+                    service = record.values['podname']
+                    if service is None:
+                        continue
+                    data[ser+"_pod"+str(pod_name[service])][q] = record.values['_value']
 
     # get p50, p75, p90, p99 latency of redisDB
     for q in quantile:
@@ -305,46 +348,6 @@ def query_db(start_time, end_time, duration):
     #                 continue
     #             data["recommendation_pod"+str(pod_name[service])][q] = record.values['_value']
     
-    # pod_name = {}
-    # cnt = 0
-    # # get rps of checkout pods
-    # query = 'from(bucket: "trace") \
-    #     |> range(start: {}, stop: {}) \
-    #     |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-    #     |> group(columns: ["podname"]) \
-    #     |> count() \
-    #     '.format(start_time, end_time)
-    # tables = influxclient.query_api().query(query, org=org)
-    # for table in tables:
-    #     for record in table.records:
-    #         service = record.values['podname']
-    #         if service is None:
-    #             continue
-    #         if service not in pod_name:
-    #             pod_name[service] = cnt
-    #             data["checkout_pod"+str(pod_name[service])] = {}
-    #             cnt += 1
-    #         try:
-    #             data["checkout_pod"+str(pod_name[service])]["rps"] = float(record.values['_value'] / duration)
-    #         except:
-    #             data["checkout_pod"+str(pod_name[service])]["rps"] = 0
-    
-    # # get p50, p75, p90, p99 latency of checkout pods
-    # for q in quantile:
-    #     query = 'from(bucket: "trace") \
-    #         |> range(start: {}, stop: {}) \
-    #         |> filter(fn: (r) => r["_measurement"] == "service_metric" and r["_field"] == "latency" and r["service"] == "checkoutservice") \
-    #         |> group(columns: ["podname"]) \
-    #         |> toFloat() \
-    #         |> quantile(q: {}, column: "_value") \
-    #         '.format(start_time, end_time, q)
-    #     tables = influxclient.query_api().query(query, org=org)
-    #     for table in tables:
-    #         for record in table.records:
-    #             service = record.values['podname']
-    #             if service is None:
-    #                 continue
-    #             data["checkout_pod"+str(pod_name[service])][q] = record.values['_value']
     return data
 
 
@@ -394,12 +397,12 @@ def run_one_set(i):
     # 部署服务
     print("deploying...")
     retry = 0
-    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
+    skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
         shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     ret_code = skaffold_run.wait()
     while ret_code != 0:
         print("deployment failed. return code is "+str(ret_code)+" Retry. ")
-        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapiosss", 
+        skaffold_run = subprocess.Popen("skaffold run --default-repo=sapios", 
             shell=True, stdout=subprocess.DEVNULL, stderr=sys.stderr)
         ret_code = skaffold_run.wait()
         retry += 1
@@ -412,7 +415,7 @@ def run_one_set(i):
     # 获取服务接口，进行压力测试
     ip = get_ip()
     time.sleep(5)
-    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c10 -d5m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R150 " + ip
+    wrk_cmd = "/home/yuqingxie/wrk2/wrk -t5 -L -c10 -d1m --timeout 10s -s /home/yuqingxie/microservices-demo/wrk/script.lua -R300 " + ip
     print(wrk_cmd)
     wrk_record = open("wrk_table/"+str(i), mode="w")
     wrk_run = subprocess.Popen(wrk_cmd, shell=True, stdout=wrk_record, stderr=sys.stderr)
@@ -470,14 +473,14 @@ def generate_wrk():
     return index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio
 
 def main():
-    num_samples = 120
+    num_samples = 1
     generate_parameters(num_samples)
     # read_parameters()
     print("generated parameters for", num_samples, "groups!")
     time_zone = []
     # wrk_para = []
     for i in range(num_samples):
-        # if i <= 3:
+        # if i <= 18:
         #     continue
         # index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio = generate_wrk()
         # wrk_para.append([index_ratio, setCurrency_ratio, browseProduct_ratio, viewCart_ratio, add2cart_ratio])

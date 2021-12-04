@@ -16,7 +16,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 bucket = "trace"
 
 DEFAULT_ENDPOINT = '/api/v2/spans'
-DEFAULT_HOST_NAME = '10.0.0.41'
+DEFAULT_HOST_NAME = '10.0.0.29'
 DEFAULT_PORT = 9411
 DEFAULT_PROTOCOL = 'http'
 ZIPKIN_HEADERS = {'Content-Type': 'application/json'}
@@ -73,7 +73,7 @@ class InfluxDBExporter(base_exporter.Exporter):
         self.ipv6 = ipv6
 
         # 可以在这里一直挂着client吗？？
-        self.client = InfluxDBClient(url="http://10.0.0.41:8086", token="nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==", org="MSRA")
+        self.client = InfluxDBClient(url="http://10.0.0.29:8086", token="nMbCj1HHoEV5UTcZBBrtm6kkQ4xzlK8I0EfRrZO2i6ngr3mBB4y0XLUQvBdxTZCnHDoHZQgaNRGbhfSZ9A76fQ==", org="MSRA")
         
 
     @property

@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: cartservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: cartservice
@@ -69,7 +70,7 @@ kind: Service
 metadata:
   name: cartservice
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: cartservice
   ports:

@@ -17,6 +17,7 @@ kind: Deployment
 metadata:
   name: redis-cart
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: redis-cart
@@ -63,7 +64,7 @@ kind: Service
 metadata:
   name: redis-cart
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: redis-cart
   ports:
