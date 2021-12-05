@@ -15,7 +15,7 @@ def check_quality():
     p90 = []
     cnt = 0
     para = {}
-    for i in range (200):
+    for i in range (45):
         latency_infite = False
         data = pd.read_csv("res/data"+str(i)+".csv")
         try:

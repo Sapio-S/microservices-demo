@@ -90,7 +90,7 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: frontend
   ports:
