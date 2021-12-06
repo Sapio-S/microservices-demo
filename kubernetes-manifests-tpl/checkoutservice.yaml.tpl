@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: checkoutservice
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: checkoutservice
@@ -19,6 +19,24 @@ spec:
         - name: net.ipv4.tcp_wmem
           value: "4096        {{para.IPV4_WMEM}}   4194304"
       serviceAccountName: default
+      initContainers:
+        - name: db-probe
+          image: simonalphafang/alpine-telnet:0.0.1
+          command:
+          - sh
+          - -c
+          - |
+            set -e
+            export ADDR1="emailservice.default.svc.cluster.local"
+            export ADDR2="paymentservice.default.svc.cluster.local"
+            export ADDR3="shippingservice.default.svc.cluster.local"
+            while true; do
+              echo '' | telnet $ADDR1 5000 && \
+              echo '' | telnet $ADDR2 50051 && \
+              echo '' | telnet $ADDR3 50051
+              break
+              sleep 3
+            done
       containers:
         - name: server
           image: checkoutservice

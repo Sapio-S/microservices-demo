@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: cartservice
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: cartservice
@@ -34,6 +34,20 @@ spec:
           value: "4096        {{para.IPV4_RMEM}}  6291456"
         - name: net.ipv4.tcp_wmem
           value: "4096        {{para.IPV4_WMEM}}   4194304"
+      initContainers:
+        - name: db-probe
+          image: simonalphafang/alpine-telnet:0.0.1
+          command:
+          - sh
+          - -c
+          - |
+            set -e
+            export ADDR="redis-cart.default.svc.cluster.local"
+            while true; do
+              echo '' | telnet $ADDR 6379
+              break
+              sleep 3
+            done
       containers:
       - name: server
         image: cartservice

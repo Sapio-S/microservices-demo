@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: emailservice
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: emailservice

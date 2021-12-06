@@ -27,6 +27,19 @@ spec:
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
+      initContainers:
+        - image: simonalphafang/alpine-telnet:0.0.1
+          command:
+          - sh
+          - -c
+          - |
+            set -e
+            export ADDR="redis-cart.default.sec.cluster.local"
+            while true; do
+              echo '' | telnet $ADDR 6379
+              break
+              sleep 3
+            done
       containers:
       - name: server
         image: cartservice

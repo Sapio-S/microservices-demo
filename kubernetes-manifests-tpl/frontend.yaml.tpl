@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -35,6 +35,32 @@ spec:
         - name: net.ipv4.tcp_wmem
           value: "4096        {{para.IPV4_WMEM}}   4194304"
       serviceAccountName: default
+      initContainers:
+        - name: db-probe
+          image: simonalphafang/alpine-telnet:0.0.1
+          command:
+          - sh
+          - -c
+          - |
+            set -e
+            export ADDR1="shippingservice.default.svc.cluster.local"
+            export ADDR2="adservice.default.svc.cluster.local"
+            export ADDR3="cartservice.default.svc.cluster.local"
+            export ADDR4="checkoutservice.default.svc.cluster.local"
+            export ADDR5="currencyservice.default.svc.cluster.local"
+            export ADDR6="productcatalogservice.default.svc.cluster.local"
+            export ADDR7="recommendationservice.default.svc.cluster.local"
+            while true; do
+              echo '' | telnet $ADDR1 50051 && \
+              echo '' | telnet $ADDR2 9555 && \
+              echo '' | telnet $ADDR3 7070 && \
+              echo '' | telnet $ADDR4 5050 && \
+              echo '' | telnet $ADDR5 7000 && \
+              echo '' | telnet $ADDR7 8080 && \
+              echo '' | telnet $ADDR6 3550
+              break
+              sleep 3
+            done
       containers:
         - name: server
           image: frontend
